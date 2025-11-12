@@ -1,3 +1,12 @@
+"""
+Tests for User and UserStats models.
+
+Tests cover:
+- User model creation and validation
+- UserStats model and business logic
+- Streak tracking functionality
+"""
+
 from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model

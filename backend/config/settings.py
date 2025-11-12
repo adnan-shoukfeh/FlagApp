@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     # Third-party apps
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     # Our apps
     "users",
     "flags",
@@ -157,16 +158,31 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
+        # "rest_framework.permissions.IsAuthenticated",
+        # TODO: Switch back to IsAuthenticated after OAuth is working
+        # TEMPORARILY change to AllowAny for development
+        # We'll switch back to IsAuthenticated after OAuth is working
+        "rest_framework.permissions.AllowAny",
     ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
 }
 
 # JWT Configuration
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
-    "ROTATE_REFRESH_TOKENS": False,
-    "BLACKLIST_AFTER_ROTATION": True,
+    # Token lifetimes
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),  # Short-lived for security
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),  # Long-lived for convenience
+    # Token refresh behavior
+    "ROTATE_REFRESH_TOKENS": True,  # Issue new refresh token on refresh
+    "BLACKLIST_AFTER_ROTATION": True,  # Invalidate old refresh token
+    # Algorithm and signing
+    "ALGORITHM": "HS256",  # Symmetric signing (faster, simpler for MVP)
+    "SIGNING_KEY": SECRET_KEY,  # Uses Django's SECRET_KEY
+    # Token claims
+    "AUTH_HEADER_TYPES": ("Bearer",),  # "Authorization: Bearer <token>"
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
 }
 
 # Google OAuth

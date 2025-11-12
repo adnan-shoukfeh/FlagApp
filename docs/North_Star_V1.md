@@ -1,6 +1,6 @@
-# Flag Learning App - Design Document v1.2
+# Flag Learning App - Design Document v1.3
 
-**Last Updated:** October 22, 2025  
+**Last Updated:** October 30, 2025  
 **Status:** Pre-Development / Planning Complete  
 **Developer:** Solo Project  
 **Target Launch:** 4-5 weeks (MVP)
@@ -60,6 +60,7 @@ A geography learning application focused on flag recognition through daily chall
 - **Country Data:** REST Countries API (https://restcountries.com)
 - **Maps:** Leaflet (web) / React Native Maps (mobile)
 - **OAuth Provider:** Google Identity Services
+- **Flag Images:** flagcdn.com (CDN, MVP) / mainfacts.com (coat of arms)
 
 ---
 
@@ -77,7 +78,7 @@ The architecture is designed with these future capabilities in mind:
 2. **Quiz Mode Foundation**
    - Current: Daily single-flag challenge
    - Future: Multiple quiz modes (speed rounds, regional focus, etc.)
-   - Design: Separation of `DailyChallenge` from `GuessAttempt` models
+   - Design: Separation of `DailyChallenge` from `Question` models
 
 3. **Multiple OAuth Providers**
    - Current: Google only
@@ -94,44 +95,50 @@ The architecture is designed with these future capabilities in mind:
    - Future: Custom trivia, historical facts, regional groupings
    - Design: Flexible CountryMetadata model for custom fields
 
+6. **Image Storage Strategy**
+   - Current: CDN URLs (flagcdn.com, mainfacts.com)
+   - Future: Self-hosted with optimization pipeline
+   - Design: URL fields allow easy migration to self-hosted
+
 ### System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                     CLIENT LAYER                        │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
-│  │  React Web   │  │ React Native │  │iOS Widget    │   │
-│  │    (MUI)     │  │   (Paper)    │  │ (WidgetKit)  │   │
-│  └──────────────┘  └──────────────┘  └──────────────┘   │
-│         │                  │                  │         │
-│         └──────────────────┴──────────────────┘         │
-│                            │                            │
-│                            ▼                            │
-│                   ┌─────────────────┐                   │
-│                   │   REST API      │                   │
-│                   │  (Django REST)  │                   │
-│                   └─────────────────┘                   │
-└─────────────────────────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────┐
-│                    BACKEND LAYER                        │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
-│  │    Users     │  │    Flags     │  │   External   │   │
-│  │   App        │  │    App       │  │   Services   │   │
-│  ├──────────────┤  ├──────────────┤  ├──────────────┤   │
-│  │ User Model   │  │ Country      │  │ REST         │   │
-│  │ OAuth        │  │ DailyFlag    │  │ Countries    │   │
-│  │ UserStats    │  │ GuessAttempt │  │ API          │   │
-│  │ Streaks      │  │ Difficulty*  │  │ (cached)     │   │
-│  └──────────────┘  └──────────────┘  └──────────────┘   │
-│                            │                            │
-│                            ▼                            │
-│                   ┌─────────────────┐                   │
-│                   │   PostgreSQL    │                   │
-│                   │   Database      │                   │
-│                   └─────────────────┘                   │
-└─────────────────────────────────────────────────────────┘
+â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"
+â"‚                     CLIENT LAYER                        â"‚
+â"‚  â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"  â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"  â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"   â"‚
+â"‚  â"‚  React Web   â"‚  â"‚ React Native â"‚  â"‚iOS Widget    â"‚   â"‚
+â"‚  â"‚    (MUI)     â"‚  â"‚   (Paper)    â"‚  â"‚ (WidgetKit)  â"‚   â"‚
+â"‚  â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜  â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜  â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜   â"‚
+â"‚         â"‚                  â"‚                  â"‚         â"‚
+â"‚         â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"´â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜         â"‚
+â"‚                            â"‚                            â"‚
+â"‚                            â–¼                            â"‚
+â"‚                   â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"                   â"‚
+â"‚                   â"‚   REST API      â"‚                   â"‚
+â"‚                   â"‚  (Django REST)  â"‚                   â"‚
+â"‚                   â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜                   â"‚
+â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜
+                             â"‚
+                             â–¼
+â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"
+â"‚                    BACKEND LAYER                        â"‚
+â"‚  â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"  â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"  â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"   â"‚
+â"‚  â"‚    Users     â"‚  â"‚    Flags     â"‚  â"‚   External   â"‚   â"‚
+â"‚  â"‚   App        â"‚  â"‚    App       â"‚  â"‚   Services   â"‚   â"‚
+â"‚  â"œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"¤  â"œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"¤  â"œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"¤   â"‚
+â"‚  â"‚ User Model   â"‚  â"‚ Country      â"‚  â"‚ REST         â"‚   â"‚
+â"‚  â"‚ OAuth        â"‚  â"‚ DailyFlag    â"‚  â"‚ Countries    â"‚   â"‚
+â"‚  â"‚ UserStats    â"‚  â"‚ Question     â"‚  â"‚ API          â"‚   â"‚
+â"‚  â"‚ Streaks      â"‚  â"‚ Difficulty*  â"‚  â"‚ (cached)     â"‚   â"‚
+â"‚  â"‚              â"‚  â"‚ Images (CDN) â"‚  â"‚              â"‚   â"‚
+â"‚  â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜  â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜  â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜   â"‚
+â"‚                            â"‚                            â"‚
+â"‚                            â–¼                            â"‚
+â"‚                   â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"                   â"‚
+â"‚                   â"‚   PostgreSQL    â"‚                   â"‚
+â"‚                   â"‚   Database      â"‚                   â"‚
+â"‚                   â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜                   â"‚
+â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜
 
 * Difficulty system implemented but not active in MVP
 ```
@@ -280,6 +287,162 @@ class UserStats(Model):
 - Track combination (e.g., "I'm bad at flag text input but good at flag multiple choice")
 - Identify weak areas for targeted practice
 - Recommend formats that user excels at
+
+---
+
+#### Country Model
+```python
+class Country(Model):
+    """
+    Country data from REST Countries API.
+    
+    IMAGE STORAGE STRATEGY (v1.3):
+    - MVP: Store CDN URLs from flagcdn.com and mainfacts.com
+    - Reasoning: Zero cost, fast CDN delivery, ~2MB total data for 195 countries
+    - Future: Can migrate to self-hosted if CDN reliability becomes issue
+    - Trade-off: External dependency vs hosting complexity
+    
+    Why multiple image formats?
+    - SVG: High-quality vector (scales perfectly, preferred)
+    - PNG: Raster fallback (older browser/device support)
+    - Emoji: Lightweight search + widget display
+    - Alt text: Accessibility (screen reader descriptions)
+    """
+    
+    code = CharField(max_length=3, unique=True)  # ISO 3166-1 alpha-3
+    name = CharField(max_length=100)
+    
+    # Visual Assets (NEW in v1.3)
+    flag_emoji = CharField(max_length=10)  # "🇫🇷" - for search & widget
+    flag_svg_url = URLField(max_length=500)  # "https://flagcdn.com/fr.svg"
+    flag_png_url = URLField(max_length=500)  # "https://flagcdn.com/w320/fr.png"
+    flag_alt_text = TextField(blank=True)  # "Flag with three vertical stripes: blue, white, red"
+    
+    # Coat of Arms (optional, not all countries have these)
+    coat_of_arms_svg_url = URLField(max_length=500, null=True, blank=True)
+    coat_of_arms_png_url = URLField(max_length=500, null=True, blank=True)
+    
+    # Core data (from REST Countries API - explicitly stored fields)
+    population = BigIntegerField()
+    capital = CharField(max_length=100)
+    largest_city = CharField(max_length=100)
+    languages = JSONField()  # ["English", "Spanish"]
+    area_km2 = FloatField()
+    currencies = JSONField()
+    
+    # Extended data
+    gdp_nominal = BigIntegerField(null=True)
+    gdp_ppp_per_capita = IntegerField(null=True)
+    median_age = FloatField(null=True)
+    life_expectancy = FloatField(null=True)
+    school_expectancy = FloatField(null=True)
+    religions = JSONField(null=True)
+    arable_land_percent = FloatField(null=True)
+    fertility_rate = FloatField(null=True)
+    highest_point = CharField(max_length=100, null=True)
+    
+    # Map coordinates
+    latitude = FloatField()
+    longitude = FloatField()
+    
+    # FUTURE: Difficulty tier (not used in MVP)
+    difficulty_tier = CharField(
+        max_length=10, 
+        choices=[('easy', 'Easy'), ('medium', 'Medium'), ('hard', 'Hard')],
+        null=True,
+        blank=True
+    )
+    popularity_score = IntegerField(default=0)  # For future tier assignment
+    
+    # API caching strategy
+    api_cache_date = DateTimeField()  # When we last fetched from REST Countries
+    raw_api_response = JSONField(null=True, blank=True)  # Full JSON from API for flexibility
+    
+    class Meta:
+        indexes = [
+            Index(fields=['difficulty_tier']),  # For future tier queries
+            Index(fields=['name']),  # For encyclopedia search
+        ]
+
+    def __str__(self):
+        return f"{self.flag_emoji} {self.name}"
+    
+    def get_flag_display_url(self, prefer_svg=True):
+        """
+        Helper method to get appropriate flag URL.
+        Prefers SVG but falls back to PNG for compatibility.
+        """
+        if prefer_svg and self.flag_svg_url:
+            return self.flag_svg_url
+        return self.flag_png_url
+```
+
+**Caching Strategy:** We store explicitly-defined fields in the schema for fast queries and type safety. The `raw_api_response` field stores the complete JSON from REST Countries API as a fallback. This allows us to access any field we didn't anticipate needing without additional API calls or migrations.
+
+**Image URL Examples from REST Countries API:**
+```python
+# France example
+{
+    "flag_emoji": "🇫🇷",
+    "flag_svg_url": "https://flagcdn.com/fr.svg",
+    "flag_png_url": "https://flagcdn.com/w320/fr.png",
+    "flag_alt_text": "The flag of France is composed of three equal vertical bands of blue, white and red.",
+    "coat_of_arms_svg_url": "https://mainfacts.com/media/images/coats_of_arms/fr.svg",
+    "coat_of_arms_png_url": "https://mainfacts.com/media/images/coats_of_arms/fr.png"
+}
+```
+
+---
+
+#### DailyChallenge Model
+```python
+class DailyChallenge(Model):
+    """
+    Represents the daily flag challenge.
+    Links to a Question which contains the actual question data.
+    """
+    date = DateField(unique=True)
+    country = ForeignKey(Country)
+    
+    # FUTURE: Difficulty tracking (not used in MVP)
+    difficulty_tier = CharField(max_length=10, null=True)
+    
+    # Algorithm tracking
+    selection_algorithm_version = CharField(max_length=20, default='v1_random')
+    
+    created_at = DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-date']
+    
+    def __str__(self):
+        return f"{self.date} - {self.country.flag_emoji} {self.country.name}"
+    
+    def get_or_create_question(self):
+        """
+        Get or create the Question for this daily challenge.
+        MVP: Always creates a flag recognition text input question.
+        """
+        question, created = Question.objects.get_or_create(
+            daily_challenge=self,
+            defaults={
+                'category': QuestionCategory.FLAG,
+                'format': QuestionFormat.TEXT_INPUT,
+                'country': self.country,
+                'question_text': f"Which country does this flag belong to? {self.country.flag_emoji}",
+                'correct_answer': {
+                    'answer': self.country.name,
+                    'alternates': [
+                        # Can add common alternate names
+                        # e.g., "USA" for "United States"
+                    ]
+                }
+            }
+        )
+        return question
+```
+
+**Note:** In MVP, daily challenges use simple text input flag questions. In Phase 3, you could vary the daily challenge format (some days multiple choice, some days T/F, etc.).
 
 ---
 
@@ -476,112 +639,8 @@ const quizConfig = {
 
 ---
 
-#### Country Model
-```python
-class Country(Model):
-    code = CharField(max_length=3, unique=True)  # ISO 3166-1 alpha-3
-    name = CharField(max_length=100)
-    flag_emoji = CharField(max_length=10)
-    
-    # Core data (from REST Countries API - explicitly stored fields)
-    population = BigIntegerField()
-    capital = CharField(max_length=100)
-    largest_city = CharField(max_length=100)
-    languages = JSONField()  # ["English", "Spanish"]
-    area_km2 = FloatField()
-    currencies = JSONField()
-    
-    # Extended data
-    gdp_nominal = BigIntegerField(null=True)
-    gdp_ppp_per_capita = IntegerField(null=True)
-    median_age = FloatField(null=True)
-    life_expectancy = FloatField(null=True)
-    school_expectancy = FloatField(null=True)
-    religions = JSONField(null=True)
-    arable_land_percent = FloatField(null=True)
-    fertility_rate = FloatField(null=True)
-    highest_point = CharField(max_length=100, null=True)
-    
-    # Map coordinates
-    latitude = FloatField()
-    longitude = FloatField()
-    
-    # FUTURE: Difficulty tier (not used in MVP)
-    difficulty_tier = CharField(
-        max_length=10, 
-        choices=[('easy', 'Easy'), ('medium', 'Medium'), ('hard', 'Hard')],
-        null=True,
-        blank=True
-    )
-    popularity_score = IntegerField(default=0)  # For future tier assignment
-    
-    # API caching strategy
-    api_cache_date = DateTimeField()  # When we last fetched from REST Countries
-    raw_api_response = JSONField(null=True, blank=True)  # Full JSON from API for flexibility
-    
-    class Meta:
-        indexes = [
-            Index(fields=['difficulty_tier']),  # For future tier queries
-            Index(fields=['name']),  # For encyclopedia search
-        ]
+### Question Model
 
-    def __str__(self):
-        return f"{self.flag_emoji} {self.name}"
-```
-
-**Caching Strategy:** We store explicitly-defined fields in the schema for fast queries and type safety. The `raw_api_response` field stores the complete JSON from REST Countries API as a fallback. This allows us to access any field we didn't anticipate needing without additional API calls or migrations.
-
-#### DailyChallenge Model
-```python
-class DailyChallenge(Model):
-    """
-    Represents the daily flag challenge.
-    Links to a Question which contains the actual question data.
-    """
-    date = DateField(unique=True)
-    country = ForeignKey(Country)
-    
-    # FUTURE: Difficulty tracking (not used in MVP)
-    difficulty_tier = CharField(max_length=10, null=True)
-    
-    # Algorithm tracking
-    selection_algorithm_version = CharField(max_length=20, default='v1_random')
-    
-    created_at = DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        ordering = ['-date']
-    
-    def __str__(self):
-        return f"{self.date} - {self.country.flag_emoji} {self.country.name}"
-    
-    def get_or_create_question(self):
-        """
-        Get or create the Question for this daily challenge.
-        MVP: Always creates a flag recognition text input question.
-        """
-        question, created = Question.objects.get_or_create(
-            daily_challenge=self,
-            defaults={
-                'category': QuestionCategory.FLAG,
-                'format': QuestionFormat.TEXT_INPUT,
-                'country': self.country,
-                'question_text': f"Which country does this flag belong to? {self.country.flag_emoji}",
-                'correct_answer': {
-                    'answer': self.country.name,
-                    'alternates': [
-                        # Can add common alternate names
-                        # e.g., "USA" for "United States"
-                    ]
-                }
-            }
-        )
-        return question
-```
-
-**Note:** In MVP, daily challenges use simple text input flag questions. In Phase 3, you could vary the daily challenge format (some days multiple choice, some days T/F, etc.).
-
-#### Question Model
 ```python
 # Extensible category choices - add new categories here
 class QuestionCategory(models.TextChoices):
@@ -614,7 +673,12 @@ class Question(Model):
     """
     Flexible question model supporting multiple categories and answer formats.
     New categories/formats can be added without migrations - just update choices above.
+    
+    ARCHITECTURE NOTE (v1.3): quiz_session FK is commented out for MVP.
+    Daily challenges don't need sessions (single question per day).
+    In Phase 3, uncomment this field to link quiz questions to sessions.
     """
+    
     # What aspect of the country are we asking about?
     category = CharField(
         max_length=30,
@@ -635,7 +699,7 @@ class Question(Model):
     
     # Correct answer (structure varies by format, stored as JSON)
     # Examples:
-    #   TEXT_INPUT: {"answer": "Paris", "alternates": ["paris", "París"]}
+    #   TEXT_INPUT: {"answer": "Paris", "alternates": ["paris", "ParÃ­s"]}
     #   MULTIPLE_CHOICE: {"correct": "Paris", "options": ["Paris", "London", "Berlin", "Madrid"]}
     #   TRUE_FALSE: {"answer": true}
     #   MAP_LOCATION: {"latitude": 48.8566, "longitude": 2.3522, "tolerance_km": 50}
@@ -649,11 +713,16 @@ class Question(Model):
     #   - image_url: for questions that show an image
     metadata = JSONField(default=dict, blank=True)
     
-    # For daily challenges
+    # For daily challenges (MVP active)
     daily_challenge = ForeignKey('DailyChallenge', null=True, blank=True, on_delete=models.SET_NULL)
     
-    # For quiz mode - groups questions into sessions
-    quiz_session = ForeignKey('QuizSession', null=True, blank=True, on_delete=models.CASCADE)
+    # PHASE 3: For quiz mode - groups questions into sessions
+    # Commented out to avoid circular dependency until QuizSession model exists
+    # When implementing Phase 3:
+    # 1. Uncomment this line
+    # 2. Run: python manage.py makemigrations
+    # 3. Run: python manage.py migrate
+    # quiz_session = ForeignKey('QuizSession', null=True, blank=True, on_delete=models.CASCADE)
     
     # Tracking
     created_at = DateTimeField(auto_now_add=True)
@@ -663,7 +732,7 @@ class Question(Model):
             Index(fields=['category', 'format']),  # For filtering question types
             Index(fields=['country']),  # For country-specific queries
             Index(fields=['daily_challenge']),  # For daily challenge lookups
-            Index(fields=['quiz_session']),  # For quiz result grouping
+            # Index(fields=['quiz_session']),  # PHASE 3: Uncomment when quiz_session FK active
         ]
     
     def __str__(self):
@@ -709,8 +778,23 @@ class Question(Model):
         #     return is_correct, explanation
         
         return False, "Unknown question format"
-
 ```
+
+**Django Pattern: Commenting vs Deleting Foreign Keys**
+
+Why comment out `quiz_session` FK instead of removing it entirely?
+
+1. **Documentation**: Shows the intended architecture clearly
+2. **No Database Impact**: Commented code doesn't create database fields
+3. **Easy Activation**: In Phase 3, just uncomment and migrate
+4. **Prevents Forgetting**: You won't wonder "should this be here?" later
+
+This is a common Django pattern when building features incrementally. It's better than:
+- Deleting (lose design intent)
+- Implementing early (premature complexity)
+- Using TODO comments (no actual code to uncomment)
+
+---
 
 #### UserAnswer Model
 ```python
@@ -762,6 +846,8 @@ class QuizSession(Model):
     """
     Groups questions together for quiz mode.
     Daily challenges don't use sessions (single question per day).
+    
+    PHASE 3: Implement this model when adding quiz mode.
     """
     user = ForeignKey(User, on_delete=models.CASCADE)
     
@@ -858,7 +944,7 @@ class UserAchievement(Model):
 **Goals:**
 - Set up Django project with two apps (`users`, `flags`)
 - Implement OAuth authentication with Google
-- Cache REST Countries API data in PostgreSQL
+- Cache REST Countries API data in PostgreSQL (including image URLs)
 - Build daily flag selection algorithm (simple random, no repeats)
 - Create RESTful endpoints
 
@@ -870,7 +956,7 @@ GET    /api/auth/user/             # Get current user
 POST   /api/auth/logout/           # Logout
 
 Daily Challenge:
-GET    /api/daily/                 # Get today's challenge (returns Question object)
+GET    /api/daily/                 # Get today's challenge (returns Question object with flag URLs)
 POST   /api/daily/answer/          # Submit an answer (creates UserAnswer)
 GET    /api/daily/result/          # Get today's result (after answering)
 GET    /api/daily/history/         # Get past daily challenges
@@ -888,9 +974,9 @@ GET    /api/quiz/{session_id}/results/ # Get quiz results
 GET    /api/quiz/history/          # Get past quiz sessions
 
 Encyclopedia:
-GET    /api/countries/             # List all countries
+GET    /api/countries/             # List all countries (with image URLs)
 GET    /api/countries/search/      # Search by name or flag emoji
-GET    /api/countries/{code}/      # Get country details
+GET    /api/countries/{code}/      # Get country details (includes all image URLs)
 
 Question Generation (Internal/Admin):
 POST   /api/admin/questions/generate/  # Generate questions for countries
@@ -898,10 +984,11 @@ GET    /api/admin/questions/           # List all questions
 ```
 
 **Success Criteria:**
-- All endpoints return correct data
+- All endpoints return correct data with image URLs
 - Daily flag is deterministic (same for all users)
 - Resets at midnight Eastern Time
 - No repeated countries until all shown
+- Flag images display correctly from CDN
 
 #### 2. React Website (Weeks 2-3)
 **Goals:**
@@ -909,15 +996,16 @@ GET    /api/admin/questions/           # List all questions
 - Implement Zustand state management
 - Build all core screens
 - Integrate Leaflet maps
+- Display flag images from CDN URLs
 
 **Pages:**
 1. **Landing Page** (unauthenticated)
    - Hero section with app description
    - Google Sign-In button
-   - Preview of daily challenge
+   - Preview of daily challenge with flag image
 
 2. **Daily Challenge Page** (authenticated)
-   - Flag display (emoji only, large)
+   - Flag display using SVG URL (with PNG fallback)
    - Text input for country guess
    - Submit button
    - Attempts counter (X/3)
@@ -925,28 +1013,43 @@ GET    /api/admin/questions/           # List all questions
 
 3. **Country Info Page** (after guess or from encyclopedia)
    - All country data fields listed in requirements
+   - Flag display (SVG preferred, PNG fallback)
+   - Coat of arms display (if available)
    - Interactive Leaflet map (zoom + pan)
    - Static map view
    - "Back to Today's Challenge" button
 
 4. **Encyclopedia Page**
    - Search bar (by country name or flag emoji)
-   - Results grid with flag emoji + country name
+   - Results grid with flag images + country name
    - Click country → shows full country info
 
 5. **Profile/Stats Page**
    - Total correct guesses
    - Current streak
    - Longest streak
-   - List of incorrectly guessed countries
+   - List of incorrectly guessed countries (with flag images)
    - Logout button
+
+**Image Rendering Strategy:**
+```jsx
+// Prefer SVG, fallback to PNG
+<img 
+  src={country.flag_svg_url} 
+  alt={country.flag_alt_text}
+  onError={(e) => { e.target.src = country.flag_png_url }}
+  style={{ width: '100%', maxWidth: '320px' }}
+/>
+```
 
 **Success Criteria:**
 - Smooth user flow from login → guess → result
 - Stats update in real-time
 - Search works reliably
 - Maps display correctly
+- Flag images load quickly from CDN
 - Mobile-responsive design
+- Accessible (alt text works with screen readers)
 
 #### 3. iOS App (Week 4)
 **Goals:**
@@ -954,35 +1057,39 @@ GET    /api/admin/questions/           # List all questions
 - Reuse Zustand store from web
 - Adapt MUI components to React Native Paper
 - Integrate React Native Maps
+- Display flag images from CDN
 
 **Screens:**
 - Mirror web pages but optimized for mobile
 - Native navigation patterns
 - Tab bar navigation (Today / Encyclopedia / Profile)
+- Fast image loading with React Native's `<Image>` component
 
 **Success Criteria:**
 - Feature parity with web
 - Smooth navigation
 - Works on iOS simulator and device
 - Maps render correctly
+- Flag images cache properly
 
 #### 4. iOS Widget (Week 5)
 **Goals:**
 - Build native WidgetKit widget in Swift
-- Fetch today's flag from API
+- Fetch today's flag from API (use emoji for widget, URL for app)
 - Deep link to app on tap
 
 **Widget Features:**
 - Small/Medium/Large sizes
-- Shows flag emoji only
+- Shows flag emoji only (lightweight for widget)
 - Shows "Tap to guess" text
 - Updates at midnight ET
-- Opens app to guess screen on tap
+- Opens app to guess screen on tap (displays full SVG/PNG image)
 
 **Success Criteria:**
 - Widget updates daily
 - Deep linking works
 - Handles offline gracefully
+- Fast rendering (emoji loads instantly)
 
 ---
 
@@ -1046,8 +1153,8 @@ GET    /api/admin/questions/           # List all questions
   - Quiz history with detailed results
 
 **Backend Changes:**
-- New models: `QuizSession`, `QuizQuestion`, `QuizAnswer`
-- `QuestionType` enum/choices for all categories
+- Uncomment `quiz_session` FK in Question model
+- Implement `QuizSession` model
 - Quiz generation engine (random country + category selection)
 - Answer validation for each question type
 - Quiz statistics aggregation
@@ -1061,29 +1168,6 @@ GET    /api/admin/questions/           # List all questions
 - Quiz history page with filters
 - Category mastery dashboard
 
-**Data Model Preview (Phase 3):**
-```python
-class QuizSession(Model):
-    user = ForeignKey(User)
-    question_count = IntegerField()
-    categories = JSONField()  # ["flag", "capital", "population"]
-    difficulty_filter = CharField(null=True)
-    region_filter = CharField(null=True)
-    is_timed = BooleanField(default=False)
-    created_at = DateTimeField(auto_now_add=True)
-    completed_at = DateTimeField(null=True)
-
-class QuizQuestion(Model):
-    session = ForeignKey(QuizSession)
-    country = ForeignKey(Country)
-    question_type = CharField(choices=QUESTION_TYPES)
-    question_text = TextField()  # "What is the capital of France?"
-    correct_answer = TextField()
-    user_answer = TextField(null=True)
-    is_correct = BooleanField(null=True)
-    time_taken_seconds = IntegerField(null=True)
-```
-
 **Timeline:** 2-3 weeks (significant new functionality, complex question generation)
 
 ---
@@ -1092,19 +1176,19 @@ class QuizQuestion(Model):
 
 **New Features:**
 - Achievements system (50+ achievements)
-- Share results to social media
+- Share results to social media (with flag images)
 - Friend challenges
 - Custom avatar/profile
 - Badge collection
 
 **Backend Changes:**
 - `Achievement`, `UserAchievement` models
-- Social sharing metadata generation
+- Social sharing metadata generation (Open Graph images)
 - Friend system (optional)
 
 **Frontend Changes:**
 - Achievements gallery
-- Share result UI
+- Share result UI with flag images
 - Profile customization
 - Badge display on profile
 
@@ -1116,7 +1200,7 @@ class QuizQuestion(Model):
 
 **New Features:**
 - Historical facts per country
-- Famous landmarks
+- Famous landmarks (with images)
 - Cultural trivia
 - Regional groupings (EU, ASEAN, etc.)
 - Custom curated collections
@@ -1125,11 +1209,13 @@ class QuizQuestion(Model):
 - Extended `CountryMetadata` model
 - Content management system
 - Editorial workflow (if you add editors)
+- Image storage for landmark photos (CDN or self-hosted)
 
 **Frontend Changes:**
 - Enhanced country info pages
 - Collection browsing
 - Daily trivia alongside flag
+- Image galleries
 
 **Timeline:** Ongoing / As desired
 
@@ -1147,13 +1233,13 @@ class QuizQuestion(Model):
 
 **Days 3-4: Authentication & Models**
 - Configure Google OAuth
-- Create all database models
+- Create all database models (including image URL fields)
 - Run migrations
 - Write model tests
 
 **Days 5-7: API Endpoints & Algorithm**
 - Build daily flag selection algorithm
-- Cache REST Countries API data
+- Cache REST Countries API data (including image URLs)
 - Implement all MVP endpoints
 - Test API with Postman/curl
 - Write API documentation
@@ -1163,6 +1249,7 @@ class QuizQuestion(Model):
 - ✅ Daily flag endpoint returns same country for all users
 - ✅ Guess submission works correctly
 - ✅ Stats update properly
+- ✅ Image URLs are cached and accessible
 
 ---
 
@@ -1186,12 +1273,14 @@ class QuizQuestion(Model):
 - Show attempts counter
 - Display user stats
 - Handle correct/incorrect feedback
-- Create country info display
+- Create country info display with flag images
+- Implement SVG → PNG fallback
 
 **Milestones:**
 - ✅ Can log in from website
 - ✅ Can see today's flag and submit guesses
 - ✅ Stats display correctly
+- ✅ Flag images load from CDN
 
 ---
 
@@ -1201,12 +1290,12 @@ class QuizQuestion(Model):
 - Implement search functionality
 - Integrate Leaflet maps
 - Create static map component
-- Polish country info page
+- Polish country info page with all images
 
 **Days 18-19: Profile & Stats**
 - Build profile page
 - Display all user statistics
-- Show incorrect countries list
+- Show incorrect countries list (with flag thumbnails)
 - Add logout functionality
 
 **Days 20-21: Testing & Polish**
@@ -1215,11 +1304,13 @@ class QuizQuestion(Model):
 - Fix bugs
 - Polish UI/UX
 - Add loading states and error handling
+- Test image fallback scenarios
 
 **Milestones:**
 - ✅ Website fully functional
 - ✅ Mobile-responsive
 - ✅ All features working smoothly
+- ✅ Images display reliably
 
 ---
 
@@ -1232,20 +1323,23 @@ class QuizQuestion(Model):
 
 **Days 24-26: Core Features**
 - Port authentication flow
-- Build daily challenge screen
-- Implement encyclopedia
+- Build daily challenge screen with flag images
+- Implement encyclopedia with image grid
 - Add profile page
 - Integrate React Native Maps
+- Optimize image caching
 
 **Days 27-28: Testing & Polish**
 - Test on iOS simulator
 - Test on physical device
 - Handle edge cases
 - Polish navigation and UX
+- Test offline image caching
 
 **Milestones:**
 - ✅ App feature parity with website
 - ✅ Smooth native experience
+- ✅ Fast image loading
 
 ---
 
@@ -1253,7 +1347,7 @@ class QuizQuestion(Model):
 **Days 29-31: Widget Development**
 - Learn WidgetKit basics (Swift)
 - Create widget extension
-- Fetch today's flag from API
+- Fetch today's flag emoji from API
 - Implement deep linking
 - Test widget timeline updates
 
@@ -1267,6 +1361,7 @@ class QuizQuestion(Model):
 **Days 34-35: Final Testing & Launch**
 - End-to-end testing
 - Performance optimization
+- Test CDN reliability (have backup plan)
 - App Store submission prep (screenshots, description)
 - Submit to App Store
 - Launch website
@@ -1276,6 +1371,7 @@ class QuizQuestion(Model):
 - ✅ Backend deployed to production
 - ✅ Website live
 - ✅ App submitted to App Store
+- ✅ All images loading from CDN
 
 ---
 
@@ -1295,6 +1391,8 @@ class QuizQuestion(Model):
 | Maps Library | Leaflet (web) | Free, simple, sufficient for MVP |
 | Daily Reset Time | Midnight Eastern Time | Fixed timezone, consistent globally |
 | Flag Selection (MVP) | Random, no repeats | Simple to implement, proves concept |
+| **Image Storage (NEW v1.3)** | **CDN URLs (flagcdn.com, mainfacts.com)** | **Zero cost, fast delivery, ~2MB total, easy migration to self-hosted later** |
+| **Image Formats (NEW v1.3)** | **SVG + PNG + Emoji + Alt Text** | **Quality (SVG), Compatibility (PNG), Lightweight (Emoji), Accessibility (Alt Text)** |
 
 ### Deferred Decisions
 | Decision | Timeline | Notes |
@@ -1304,6 +1402,7 @@ class QuizQuestion(Model):
 | Difficulty Categorization | Phase 2 | Need to analyze country recognition data |
 | Additional OAuth | Phase 2+ | Apple required for App Store if adding social logins |
 | Error Handling Strategy | After Week 1 | Starting with Django REST Framework defaults. Will evaluate need for custom exception classes after building initial endpoints. |
+| **Self-Hosted Images (NEW v1.3)** | **Phase 2+** | **Migrate if CDN becomes unreliable. Download script is ~1 hour project** |
 
 ---
 
@@ -1318,11 +1417,13 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 - Use JSONField for future-flexible data (avoid migrations)
 - Add indexed fields for future queries even if unused in MVP
 - Nullable foreign keys where relationships might expand
+- **Store URLs not binary data** (easier to migrate, no storage complexity)
 
 #### ✅ API Design
 - Version API endpoints (`/api/v1/...`) for future breaking changes
 - Include pagination on all list endpoints (even if small now)
 - Return full objects, not minimal data (easier to extend UI)
+- **Include all image URLs in responses** (client chooses format)
 - Use consistent response structure:
   ```json
   {
@@ -1347,6 +1448,7 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
   ```
 - Extract repeated logic into custom hooks
 - Keep component state local; only global state in Zustand
+- **Implement image fallback strategy** (SVG → PNG → Emoji)
 
 #### ✅ State Management
 - Separate concerns in Zustand store:
@@ -1367,6 +1469,7 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 - Don't test UI in MVP (slows development)
 - Test API endpoints with Django's test suite
 - Manual testing for UX flows
+- **Test image fallback** (mock CDN failures)
 
 ---
 
@@ -1398,6 +1501,18 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 - **Mitigation:** Cache aggressively; store all data in our database; refresh weekly not daily
 - **Fallback:** Manual data entry (one-time, manageable for 195 countries)
 
+**Risk 5: CDN (flagcdn.com) Downtime or Unavailability (NEW v1.3)**
+- **Likelihood:** Low-Medium
+- **Impact:** Medium (images don't load)
+- **Mitigation:** 
+  - Multiple fallbacks: SVG → PNG → Emoji
+  - Cache CDN URLs in database for stability
+  - ~2MB total to download all images if needed
+- **Fallback:** 
+  - Download all flag images to our server (~1 hour project)
+  - Update URLs in database to point to self-hosted
+  - Zero downtime (just database update)
+
 ### Timeline Risks
 
 **Risk 1: Learning Curve Longer Than Expected**
@@ -1424,9 +1539,13 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 - [ ] Encyclopedia search works
 - [ ] All country data displays properly
 - [ ] Maps render interactively
+- [ ] **Flag images display from CDN URLs**
+- [ ] **SVG → PNG fallback works**
+- [ ] **Alt text provides accessibility**
+- [ ] **Coat of arms displays for countries that have them**
 - [ ] Website is responsive (mobile + desktop)
 - [ ] iOS app has feature parity with website
-- [ ] iOS widget displays today's flag and deep links to app
+- [ ] iOS widget displays today's flag emoji and deep links to app
 - [ ] Backend is deployed to production
 - [ ] App is submitted to App Store
 
@@ -1436,6 +1555,8 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 - Average guesses per flag (lower = easier flags)
 - Encyclopedia usage rate
 - Completion rate (% who guess vs abandon)
+- **Image load performance** (CDN response times)
+- **Image fallback usage** (how often PNG used vs SVG)
 
 ---
 
@@ -1445,11 +1566,13 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 - [x] **REST Countries API caching strategy:** Store selected fields explicitly in schema (Country model fields) + full JSON in `raw_api_response` field for flexibility
 - [x] **Token refresh strategy:** Access tokens valid for 1 day, refresh tokens valid for 30 days (industry standard for web apps). Django OAuth handles refresh automatically via django-allauth.
 - [x] **Error handling approach:** Start with Django REST Framework's default exception handling. Will evaluate need for custom exceptions after building first endpoints. (See Deferred Decisions below)
+- [x] **Image storage strategy (NEW v1.3):** Use CDN URLs for MVP. Can migrate to self-hosted in Phase 2+ if needed. Multiple fallback options provide reliability.
 
 ### Before Phase 2
 - [ ] How to categorize countries by "recognition" (data source? manual?)
 - [ ] Should we add a tier preview/legend for users?
 - [ ] Do we want admin UI for tier management? (Django Admin vs custom?)
+- [ ] **Monitor CDN reliability** - track image load failures to decide on self-hosting
 
 ### Before Phase 3
 - [ ] Quiz question generation algorithm: How to ensure variety and appropriate difficulty?
@@ -1461,6 +1584,7 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 ### Before Phase 4
 - [ ] Achievement criteria: manual curation or algorithm-generated?
 - [ ] Social sharing: which platforms to support? (Twitter, Instagram, iMessage?)
+- [ ] **Social share images:** Use CDN or generate custom Open Graph images?
 
 ### Before App Store Launch
 - [ ] Privacy policy (can use template, but customize for our data usage)
@@ -1499,7 +1623,7 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 - All countries: `/all`
 - By name: `/name/{name}`
 - By code: `/alpha/{code}`
-- Fields parameter: `?fields=name,capital,population,flag`
+- Fields parameter: `?fields=name,capital,population,flags`
 
 **Data Fields We'll Use:**
 - name.common, name.official
@@ -1508,10 +1632,23 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 - area
 - languages (object)
 - currencies (object)
-- flags.emoji
+- **flags.png** (NEW v1.3)
+- **flags.svg** (NEW v1.3)
+- **flags.alt** (NEW v1.3 - alt text for accessibility)
+- **coatOfArms.png** (NEW v1.3)
+- **coatOfArms.svg** (NEW v1.3)
 - latlng (array)
 - region, subregion
 - timezones (array)
+
+**Flag CDN URLs:**
+- SVG: `https://flagcdn.com/{code}.svg` (e.g., `https://flagcdn.com/fr.svg`)
+- PNG 320px: `https://flagcdn.com/w320/{code}.png`
+- PNG 640px: `https://flagcdn.com/w640/{code}.png`
+
+**Coat of Arms URLs:**
+- SVG: `https://mainfacts.com/media/images/coats_of_arms/{code}.svg`
+- PNG: `https://mainfacts.com/media/images/coats_of_arms/{code}.png`
 
 ### Deployment Checklist
 
@@ -1523,6 +1660,7 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 - [ ] DEBUG=False in production
 - [ ] ALLOWED_HOSTS configured
 - [ ] CORS settings configured for frontend domains
+- [ ] **Test CDN image loading** from production server
 
 **Post-Deployment:**
 - [ ] SSL certificate installed (HTTPS)
@@ -1530,6 +1668,8 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 - [ ] Monitoring set up (errors, uptime)
 - [ ] Backups configured (database)
 - [ ] Rate limiting enabled (prevent abuse)
+- [ ] **CDN monitoring** (alert if images fail to load)
+- [ ] **Image fallback working** (test by blocking CDN)
 
 ---
 
@@ -1540,29 +1680,41 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 | 1.0 | Oct 22, 2025 | Initial design document | Solo Developer |
 | 1.1 | Oct 22, 2025 | **Refinements:** (1) Clarified MUI vs React Native Paper code reusability expectations (~30% rewrite UI, ~70% shared logic); (2) Expanded Phase 3 quiz vision to include multiple question categories (capital, population, currency, etc.) and flexible quiz configuration; (3) Enhanced data models for extensibility (`GuessAttempt`, `Country`, `UserStats`) to support future quiz categories without migrations; (4) Resolved Phase 1 open questions (API caching strategy, token refresh, error handling); (5) Added error handling to deferred decisions | Solo Developer |
 | 1.2 | Oct 22, 2025 | **Major Redesign:** Completely rethought question/answer system for maximum flexibility: (1) Replaced `GuessAttempt` with `Question` + `UserAnswer` models supporting multiple answer formats (text input, multiple choice, true/false, future map-based); (2) Added `QuestionCategory` and `QuestionFormat` enums for easy extension without migrations; (3) Implemented flexible answer validation system; (4) Added `QuizSession` model for Phase 3 quiz configuration; (5) Enhanced `UserStats` to track performance by both category AND format; (6) Added comprehensive "Question Generation System" section with step-by-step guides for adding categories/formats; (7) Updated API endpoints to reflect new architecture; (8) Added quiz configuration system allowing users to select answer formats | Solo Developer |
+| 1.3 | Oct 30, 2025 | **Image Storage Architecture:** (1) Added image URL fields to `Country` model: `flag_svg_url`, `flag_png_url`, `flag_alt_text`, `coat_of_arms_svg_url`, `coat_of_arms_png_url`; (2) Documented MVP strategy: Use CDN URLs (flagcdn.com, mainfacts.com) for zero-cost hosting with easy migration path to self-hosted; (3) Commented out `quiz_session` FK in `Question` model (Phase 3 feature) with explanation of Django best practice for future relationships; (4) Added accessibility considerations (alt text for screen readers); (5) Updated API endpoints to include image URLs; (6) Added image fallback strategy (SVG → PNG → Emoji); (7) Added CDN reliability to risk assessment; (8) Updated technical decisions log with image storage choice; (9) Added REST Countries API image fields documentation; (10) Created image loading examples for frontend | Solo Developer |
 
 ---
 
 ## Notes for Future Self
 
 **Key Lessons to Remember:**
-1. **Don't optimize prematurely** - Get it working first, optimize later
+1. **Don't optimize prematurely** - Get it working first, optimize later (CDN → self-hosted if needed)
 2. **User feedback > assumptions** - Launch MVP, see what users actually want
 3. **Code reuse has limits** - Don't force sharing between web/mobile if it adds complexity
 4. **Document as you go** - Future you will thank present you
 5. **Test the happy path first** - Edge cases can wait until MVP works
+6. **External dependencies are OK for MVP** - CDN URLs are fine; can always migrate later
+7. **Comment > Delete** - Commenting out future code (like quiz_session FK) documents intent
 
 **When You're Stuck:**
 - Check this document's architecture section
 - Review the extensibility checklist
 - Remember: MVP first, features later
 - Ask for help (forums, Discord, Claude)
+- **Test image fallback scenarios** if users report issues
 
 **When You Want to Add a Feature:**
 - Ask: "Does this block MVP launch?"
 - If no → add to Phase 2+
 - If yes → was it in original requirements?
 - Be ruthless about scope
+- **Image enhancements** (custom processing, watermarks, etc.) can wait for Phase 2+
+
+**Image Migration Plan (if needed in Phase 2):**
+1. Write script to download all images from CDN (~2MB total)
+2. Upload to your hosting (S3, server storage, etc.)
+3. Update `Country` model URLs to point to new location
+4. Test thoroughly
+5. Deploy (zero downtime - just database update)
 
 ---
 
@@ -1576,5 +1728,7 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 ---
 
 **Remember: This is your roadmap. It will evolve as you learn and build. That's expected and healthy. The goal isn't to follow this perfectly—it's to have a north star that keeps you aligned and prevents feature creep while staying flexible for growth.**
+
+**Image Strategy Note: Using CDN URLs is the right MVP choice. It's fast, free, and we can always migrate to self-hosted later if needed. The architecture supports both approaches without code changes—just update the URLs in the database.**
 
 **Now let's build this! 🚀**

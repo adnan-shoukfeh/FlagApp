@@ -1,0 +1,30 @@
+# <type>: <description>
+# |<----  Using a Maximum Of 50 Characters  ---->|
+
+
+# Explain why this change is being made
+# |<----   Try To Limit Each Line to a Maximum Of 72 Characters   ---->|
+
+
+# Provide links or keys to any relevant tickets, articles or other resources
+# Example: Github issue #23
+
+# --- COMMIT END ---
+# Type can be:
+#    feat     (new feature)
+#    fix      (bug fix)
+#    refactor (refactoring code without changing behavior)
+#    test     (adding/modifying tests)
+#    docs     (changes to documentation)
+#    style    (formatting, missing semicolons, etc; no code change)
+#    chore    (updating build tasks, configs, etc; no production code change)
+#    perf     (performance improvements)
+# --------------------
+# Remember to:
+#   - Use imperative mood ("Add feature" not "Added feature")
+#   - Use lowercase for type and description
+#   - Don't end description with period
+#   - Separate subject from body with blank line
+#   - Reference issues/PRs when applicable
+# --------------------
+# See CLAUDE.md section 12 for detailed guidelines
