@@ -20,7 +20,7 @@ A geography learning application focused on flag recognition through daily chall
 **Development Philosophy:**
 - MVP-first approach with architecture designed for extensibility
 - Learn Django and React ecosystem while building production-quality code
-- No feature creep in MVP, but future enhancements designed into architecture from day one
+- No feature creep in MVP, but future enhancements designed into architecture from the start
 
 ---
 
@@ -103,42 +103,42 @@ The architecture is designed with these future capabilities in mind:
 ### System Architecture
 
 ```
-â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"
-â"‚                     CLIENT LAYER                        â"‚
-â"‚  â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"  â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"  â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"   â"‚
-â"‚  â"‚  React Web   â"‚  â"‚ React Native â"‚  â"‚iOS Widget    â"‚   â"‚
-â"‚  â"‚    (MUI)     â"‚  â"‚   (Paper)    â"‚  â"‚ (WidgetKit)  â"‚   â"‚
-â"‚  â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜  â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜  â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜   â"‚
-â"‚         â"‚                  â"‚                  â"‚         â"‚
-â"‚         â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"´â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜         â"‚
-â"‚                            â"‚                            â"‚
-â"‚                            â–¼                            â"‚
-â"‚                   â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"                   â"‚
-â"‚                   â"‚   REST API      â"‚                   â"‚
-â"‚                   â"‚  (Django REST)  â"‚                   â"‚
-â"‚                   â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜                   â"‚
-â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜
-                             â"‚
-                             â–¼
-â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"
-â"‚                    BACKEND LAYER                        â"‚
-â"‚  â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"  â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"  â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"   â"‚
-â"‚  â"‚    Users     â"‚  â"‚    Flags     â"‚  â"‚   External   â"‚   â"‚
-â"‚  â"‚   App        â"‚  â"‚    App       â"‚  â"‚   Services   â"‚   â"‚
-â"‚  â"œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"¤  â"œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"¤  â"œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"¤   â"‚
-â"‚  â"‚ User Model   â"‚  â"‚ Country      â"‚  â"‚ REST         â"‚   â"‚
-â"‚  â"‚ OAuth        â"‚  â"‚ DailyFlag    â"‚  â"‚ Countries    â"‚   â"‚
-â"‚  â"‚ UserStats    â"‚  â"‚ Question     â"‚  â"‚ API          â"‚   â"‚
-â"‚  â"‚ Streaks      â"‚  â"‚ Difficulty*  â"‚  â"‚ (cached)     â"‚   â"‚
-â"‚  â"‚              â"‚  â"‚ Images (CDN) â"‚  â"‚              â"‚   â"‚
-â"‚  â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜  â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜  â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜   â"‚
-â"‚                            â"‚                            â"‚
-â"‚                            â–¼                            â"‚
-â"‚                   â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"                   â"‚
-â"‚                   â"‚   PostgreSQL    â"‚                   â"‚
-â"‚                   â"‚   Database      â"‚                   â"‚
-â"‚                   â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜                   â"‚
-â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜
+┌────────────────────────────────────────────────────────┐
+│                     CLIENT LAYER                       │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │  React Web   │  │ React Native │  │iOS Widget    │  │
+│  │    (MUI)     │  │   (Paper)    │  │ (WidgetKit)  │  │
+│  └──────────────┘  └──────────────┘  └──────────────┘  │
+│         │                  │                  │        │
+│         └──────────────────┴──────────────────┘        │
+│                            │                           │
+│                            ▼                           │
+│                   ┌─────────────────┐                  │
+│                   │   REST API      │                  │
+│                   │  (Django REST)  │                  │
+│                   └─────────────────┘                  │
+└────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌────────────────────────────────────────────────────────┐
+│                    BACKEND LAYER                       │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │    Users     │  │    Flags     │  │   External   │  │
+│  │   App        │  │    App       │  │   Services   │  │
+│  ├──────────────┤  ├──────────────┤  ├──────────────┤  │
+│  │ User Model   │  │ Country      │  │ REST         │  │
+│  │ OAuth        │  │ DailyFlag    │  │ Countries    │  │
+│  │ UserStats    │  │ Question     │  │ API          │  │
+│  │ Streaks      │  │ Difficulty*  │  │ (cached)     │  │
+│  │              │  │ Images (CDN) │  │              │  │
+│  └──────────────┘  └──────────────┘  └──────────────┘  │
+│                            │                           │
+│                            ▼                           │
+│                   ┌─────────────────┐                  │
+│                   │   PostgreSQL    │                  │
+│                   │   Database      │                  │
+│                   └─────────────────┘                  │
+└────────────────────────────────────────────────────────┘
 
 * Difficulty system implemented but not active in MVP
 ```
@@ -699,7 +699,7 @@ class Question(Model):
     
     # Correct answer (structure varies by format, stored as JSON)
     # Examples:
-    #   TEXT_INPUT: {"answer": "Paris", "alternates": ["paris", "ParÃ­s"]}
+    #   TEXT_INPUT: {"answer": "Paris", "alternates": ["paris", "París"]}
     #   MULTIPLE_CHOICE: {"correct": "Paris", "options": ["Paris", "London", "Berlin", "Madrid"]}
     #   TRUE_FALSE: {"answer": true}
     #   MAP_LOCATION: {"latitude": 48.8566, "longitude": 2.3522, "tolerance_km": 50}
@@ -938,9 +938,9 @@ class UserAchievement(Model):
 
 ## MVP Feature Set
 
-### Phase 1: MVP (Weeks 1-5)
+### Phase 1: MVP (~4-5 weeks)
 
-#### 1. Backend API (Week 1)
+#### Backend API Implementation (Estimated: 1 week)
 **Goals:**
 - Set up Django project with two apps (`users`, `flags`)
 - Implement OAuth authentication with Google
@@ -990,7 +990,7 @@ GET    /api/admin/questions/           # List all questions
 - No repeated countries until all shown
 - Flag images display correctly from CDN
 
-#### 2. React Website (Weeks 2-3)
+#### React Website Implementation (Estimated: 1.5-2 weeks)
 **Goals:**
 - Set up React app with MUI styling
 - Implement Zustand state management
@@ -1051,7 +1051,7 @@ GET    /api/admin/questions/           # List all questions
 - Mobile-responsive design
 - Accessible (alt text works with screen readers)
 
-#### 3. iOS App (Week 4)
+#### iOS App Implementation (Estimated: 1 week)
 **Goals:**
 - Set up React Native with Expo
 - Reuse Zustand store from web
@@ -1072,7 +1072,7 @@ GET    /api/admin/questions/           # List all questions
 - Maps render correctly
 - Flag images cache properly
 
-#### 4. iOS Widget (Week 5)
+#### iOS Widget Implementation (Estimated: 1 week)
 **Goals:**
 - Build native WidgetKit widget in Swift
 - Fetch today's flag from API (use emoji for widget, URL for app)
@@ -1093,9 +1093,207 @@ GET    /api/admin/questions/           # List all questions
 
 ---
 
+## Development Timeline
+
+### Estimated Timeline: 4-5 Weeks Total
+
+This timeline represents a realistic estimate for solo development. Each phase includes time for learning, implementation, testing, and iteration.
+
+---
+
+### Phase: Backend Foundation (Estimated: 1 week)
+
+**Backend Setup & Configuration**
+*Estimated time: ~2 days*
+- Install Python, Django, PostgreSQL (for local dev use SQLite)
+- Create project structure
+- Set up two Django apps (`users`, `flags`)
+- Configure Django REST Framework
+- Set up `django-allauth` for OAuth
+
+**Authentication & Models Implementation**
+*Estimated time: ~2 days*
+- Configure Google OAuth
+- Create all database models (including image URL fields)
+- Run migrations
+- Write model tests
+
+**API Endpoints & Daily Flag Algorithm**
+*Estimated time: ~3 days*
+- Build daily flag selection algorithm
+- Cache REST Countries API data (including image URLs)
+- Implement all MVP endpoints
+- Test API with Postman/curl
+- Write API documentation
+
+**Milestones:**
+- ✅ Can authenticate with Google
+- ✅ Daily flag endpoint returns same country for all users
+- ✅ Guess submission works correctly
+- ✅ Stats update properly
+- ✅ Image URLs are cached and accessible
+
+---
+
+### Phase: React Website - Part 1 (Estimated: 1 week)
+
+**Project Setup & Authentication**
+*Estimated time: ~2 days*
+- Create React app
+- Install MUI and Zustand
+- Set up routing
+- Configure Axios for API calls
+- Create environment variables
+- Build landing page
+- Implement Google OAuth flow (frontend)
+- Create authenticated layout
+- Handle token storage and refresh
+
+**Daily Challenge Implementation**
+*Estimated time: ~3 days*
+- Build daily challenge page
+- Implement guess input and submission
+- Show attempts counter
+- Display user stats
+- Handle correct/incorrect feedback
+- Create country info display with flag images
+- Implement SVG → PNG fallback
+
+**Milestones:**
+- ✅ Can log in from website
+- ✅ Can see today's flag and submit guesses
+- ✅ Stats display correctly
+- ✅ Flag images load from CDN
+
+---
+
+### Phase: React Website - Part 2 (Estimated: 1 week)
+
+**Encyclopedia & Maps Integration**
+*Estimated time: ~3 days*
+- Build encyclopedia search page
+- Implement search functionality
+- Integrate Leaflet maps
+- Create static map component
+- Polish country info page with all images
+
+**Profile & Testing**
+*Estimated time: ~2 days*
+- Build profile page
+- Display all user statistics
+- Show incorrect countries list (with flag thumbnails)
+- Add logout functionality
+
+**Final Polish & Testing**
+*Estimated time: ~2 days*
+- Responsive design testing
+- Cross-browser testing
+- Fix bugs
+- Polish UI/UX
+- Add loading states and error handling
+- Test image fallback scenarios
+
+**Milestones:**
+- ✅ Website fully functional
+- ✅ Mobile-responsive
+- ✅ All features working smoothly
+- ✅ Images display reliably
+
+---
+
+### Phase: iOS App Development (Estimated: 1 week)
+
+**React Native Setup & Authentication**
+*Estimated time: ~2 days*
+- Create Expo project
+- Install React Native Paper
+- Set up navigation (tabs + stack)
+- Configure API client (reuse Axios setup)
+- Port authentication flow
+
+**Core Features Implementation**
+*Estimated time: ~3 days*
+- Build daily challenge screen with flag images
+- Implement encyclopedia with image grid
+- Add profile page
+- Integrate React Native Maps
+- Optimize image caching
+
+**Testing & Polish**
+*Estimated time: ~2 days*
+- Test on iOS simulator
+- Test on physical device
+- Handle edge cases
+- Polish navigation and UX
+- Test offline image caching
+
+**Milestones:**
+- ✅ App feature parity with website
+- ✅ Smooth native experience
+- ✅ Fast image loading
+
+---
+
+### Phase: Widget & Deployment (Estimated: 1 week)
+
+**Widget Development**
+*Estimated time: ~3 days*
+- Learn WidgetKit basics (Swift)
+- Create widget extension
+- Fetch today's flag emoji from API
+- Implement deep linking
+- Test widget timeline updates
+
+**Deployment Preparation**
+*Estimated time: ~2 days*
+- Choose hosting platform (Railway/Render/AWS)
+- Set up production database (PostgreSQL)
+- Configure environment variables
+- Set up SSL/HTTPS
+- Test production API
+
+**Final Testing & Launch**
+*Estimated time: ~2 days*
+- End-to-end testing
+- Performance optimization
+- Test CDN reliability (have backup plan)
+- App Store submission prep (screenshots, description)
+- Submit to App Store
+- Launch website
+
+**Milestones:**
+- ✅ Widget working and updating daily
+- ✅ Backend deployed to production
+- ✅ Website live
+- ✅ App submitted to App Store
+- ✅ All images loading from CDN
+
+---
+
+### Timeline Summary
+
+| Phase | Focus | Duration | Cumulative |
+|-------|-------|----------|------------|
+| **Backend Foundation** | Django, Auth, API | ~1 week | 1 week |
+| **Website Part 1** | Setup, Auth, Daily Challenge | ~1 week | 2 weeks |
+| **Website Part 2** | Encyclopedia, Maps, Polish | ~1 week | 3 weeks |
+| **iOS App** | React Native, Mobile UI | ~1 week | 4 weeks |
+| **Widget & Deploy** | WidgetKit, Production | ~1 week | 5 weeks |
+
+**Total Estimated Time: 4-5 weeks**
+
+**Notes on Timeline:**
+- Assumes solo development with ~30-40 hours/week
+- Includes learning time for new technologies
+- Buffer built in for debugging and iteration
+- Can be accelerated if focusing full-time
+- Can extend if learning takes longer than expected
+
+---
+
 ## Future Roadmap
 
-### Phase 2: Enhanced Difficulty System (Weeks 6-7)
+### Phase 2: Enhanced Difficulty System (Estimated: 1-2 weeks)
 
 **New Features:**
 - Three difficulty tiers (Easy, Medium, Hard)
@@ -1119,7 +1317,7 @@ GET    /api/admin/questions/           # List all questions
 
 ---
 
-### Phase 3: Quiz Mode (Weeks 8-10)
+### Phase 3: Quiz Mode (Estimated: 2-3 weeks)
 
 **New Features:**
 - **Flexible Question Categories:**
@@ -1172,7 +1370,7 @@ GET    /api/admin/questions/           # List all questions
 
 ---
 
-### Phase 4: Social & Gamification (Weeks 11-13)
+### Phase 4: Social & Gamification (Estimated: 2-3 weeks)
 
 **New Features:**
 - Achievements system (50+ achievements)
@@ -1221,255 +1419,48 @@ GET    /api/admin/questions/           # List all questions
 
 ---
 
-## Development Timeline
-
-### Week 1: Backend Foundation
-**Days 1-2: Django Setup**
-- Install Python, Django, PostgreSQL (for local dev use SQLite)
-- Create project structure
-- Set up two Django apps (`users`, `flags`)
-- Configure Django REST Framework
-- Set up `django-allauth` for OAuth
-
-**Days 3-4: Authentication & Models**
-- Configure Google OAuth
-- Create all database models (including image URL fields)
-- Run migrations
-- Write model tests
-
-**Days 5-7: API Endpoints & Algorithm**
-- Build daily flag selection algorithm
-- Cache REST Countries API data (including image URLs)
-- Implement all MVP endpoints
-- Test API with Postman/curl
-- Write API documentation
-
-**Milestones:**
-- ✅ Can authenticate with Google
-- ✅ Daily flag endpoint returns same country for all users
-- ✅ Guess submission works correctly
-- ✅ Stats update properly
-- ✅ Image URLs are cached and accessible
-
----
-
-### Week 2: React Website (Part 1)
-**Days 8-9: Project Setup**
-- Create React app
-- Install MUI and Zustand
-- Set up routing
-- Configure Axios for API calls
-- Create environment variables
-
-**Days 10-11: Authentication Flow**
-- Build landing page
-- Implement Google OAuth flow (frontend)
-- Create authenticated layout
-- Handle token storage and refresh
-
-**Days 12-14: Daily Challenge**
-- Build daily challenge page
-- Implement guess input and submission
-- Show attempts counter
-- Display user stats
-- Handle correct/incorrect feedback
-- Create country info display with flag images
-- Implement SVG → PNG fallback
-
-**Milestones:**
-- ✅ Can log in from website
-- ✅ Can see today's flag and submit guesses
-- ✅ Stats display correctly
-- ✅ Flag images load from CDN
-
----
-
-### Week 3: React Website (Part 2)
-**Days 15-17: Encyclopedia & Maps**
-- Build encyclopedia search page
-- Implement search functionality
-- Integrate Leaflet maps
-- Create static map component
-- Polish country info page with all images
-
-**Days 18-19: Profile & Stats**
-- Build profile page
-- Display all user statistics
-- Show incorrect countries list (with flag thumbnails)
-- Add logout functionality
-
-**Days 20-21: Testing & Polish**
-- Responsive design testing
-- Cross-browser testing
-- Fix bugs
-- Polish UI/UX
-- Add loading states and error handling
-- Test image fallback scenarios
-
-**Milestones:**
-- ✅ Website fully functional
-- ✅ Mobile-responsive
-- ✅ All features working smoothly
-- ✅ Images display reliably
-
----
-
-### Week 4: iOS App
-**Days 22-23: React Native Setup**
-- Create Expo project
-- Install React Native Paper
-- Set up navigation (tabs + stack)
-- Configure API client (reuse Axios setup)
-
-**Days 24-26: Core Features**
-- Port authentication flow
-- Build daily challenge screen with flag images
-- Implement encyclopedia with image grid
-- Add profile page
-- Integrate React Native Maps
-- Optimize image caching
-
-**Days 27-28: Testing & Polish**
-- Test on iOS simulator
-- Test on physical device
-- Handle edge cases
-- Polish navigation and UX
-- Test offline image caching
-
-**Milestones:**
-- ✅ App feature parity with website
-- ✅ Smooth native experience
-- ✅ Fast image loading
-
----
-
-### Week 5: iOS Widget & Deployment
-**Days 29-31: Widget Development**
-- Learn WidgetKit basics (Swift)
-- Create widget extension
-- Fetch today's flag emoji from API
-- Implement deep linking
-- Test widget timeline updates
-
-**Days 32-33: Deployment Preparation**
-- Choose hosting platform (Railway/Render/AWS)
-- Set up production database (PostgreSQL)
-- Configure environment variables
-- Set up SSL/HTTPS
-- Test production API
-
-**Days 34-35: Final Testing & Launch**
-- End-to-end testing
-- Performance optimization
-- Test CDN reliability (have backup plan)
-- App Store submission prep (screenshots, description)
-- Submit to App Store
-- Launch website
-
-**Milestones:**
-- ✅ Widget working and updating daily
-- ✅ Backend deployed to production
-- ✅ Website live
-- ✅ App submitted to App Store
-- ✅ All images loading from CDN
-
----
-
 ## Technical Decisions Log
 
 ### Locked Decisions
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Backend Framework | Django + DRF | Learning goal, robust, great for rapid development |
-| Web Frontend | React + MUI | Component reuse, consistent design, learning goal |
-| Mobile Framework | React Native + Expo | Code sharing with web, faster than native |
-| Widget | Native WidgetKit | Expo doesn't support widgets, must be native |
-| State Management | Zustand | Simple, works cross-platform, easy to learn |
-| Database (dev) | SQLite | Fast setup, no config needed |
-| Database (prod) | PostgreSQL | Industry standard, JSON support, robust |
-| OAuth Provider | Google | Universal, simple integration, MVP-sufficient |
-| Maps Library | Leaflet (web) | Free, simple, sufficient for MVP |
-| Daily Reset Time | Midnight Eastern Time | Fixed timezone, consistent globally |
-| Flag Selection (MVP) | Random, no repeats | Simple to implement, proves concept |
-| **Image Storage (NEW v1.3)** | **CDN URLs (flagcdn.com, mainfacts.com)** | **Zero cost, fast delivery, ~2MB total, easy migration to self-hosted later** |
-| **Image Formats (NEW v1.3)** | **SVG + PNG + Emoji + Alt Text** | **Quality (SVG), Compatibility (PNG), Lightweight (Emoji), Accessibility (Alt Text)** |
+
+These decisions are foundational and unlikely to change.
+
+| Decision | Choice | Rationale | Date |
+|----------|--------|-----------|------|
+| **Backend Framework** | Django + DRF | Learning goal, rapid dev, batteries-included | Oct 30 |
+| **Database** | PostgreSQL | Production-ready, JSON support, ACID | Oct 30 |
+| **Package Manager** | uv | 10-100x faster than pip, modern tooling | Oct 30 |
+| **Authentication** | Frontend token flow | Better UX, works for SPA + mobile | Oct 30 |
+| **User Model** | Custom from day 1 | Django best practice (can't change later) | Oct 30 |
+| **Business Logic** | Model methods (fat models) | Django pattern, fast MVP | Oct 30 |
+| **Image Storage** | CDN URLs (flagcdn.com) | Zero cost, fast, reliable | Oct 30 |
+| **Timezone** | America/New_York (fixed) | Same daily flag for all users globally | Oct 30 |
+| **API Versioning** | /api/v1/ prefix | Future-proof, industry standard | Oct 30 |
+| **Serializer Pattern** | Thin serializers | Data transformation only, logic in models | Oct 31 |
 
 ### Deferred Decisions
+
+These will be decided when needed.
+
 | Decision | Timeline | Notes |
 |----------|----------|-------|
-| Production Hosting | Week 3-4 | Railway vs AWS, decided at deployment |
-| Mobile Maps | Week 4 | React Native Maps or Mapbox Native |
-| Difficulty Categorization | Phase 2 | Need to analyze country recognition data |
-| Additional OAuth | Phase 2+ | Apple required for App Store if adding social logins |
-| Error Handling Strategy | After Week 1 | Starting with Django REST Framework defaults. Will evaluate need for custom exception classes after building initial endpoints. |
-| **Self-Hosted Images (NEW v1.3)** | **Phase 2+** | **Migrate if CDN becomes unreliable. Download script is ~1 hour project** |
+| **Service Layer** | Phase 2 | Extract when models exceed ~500 lines |
+| **Image Self-Hosting** | Phase 2+ | Only if CDN becomes unreliable |
+| **Rate Limiting** | Before Production | Use django-ratelimit or DRF throttling |
+| **Caching** | Phase 2 | Redis for hot data (daily challenges, leaderboards) |
+| **Background Tasks** | Phase 3 | Celery for email, data refresh, etc. |
+| **Full-Text Search** | Phase 3 | PostgreSQL full-text or Elasticsearch |
+| **API Documentation** | Before Production | drf-spectacular for OpenAPI/Swagger |
 
----
+### Decision-Making Process
 
-## Architecture Guardrails
+When making new architectural decisions:
 
-### Extensibility Checklist
-
-To ensure we don't paint ourselves into a corner, we follow these principles:
-
-#### ✅ Database Design
-- All models include `created_at` and `updated_at` where relevant
-- Use JSONField for future-flexible data (avoid migrations)
-- Add indexed fields for future queries even if unused in MVP
-- Nullable foreign keys where relationships might expand
-- **Store URLs not binary data** (easier to migrate, no storage complexity)
-
-#### ✅ API Design
-- Version API endpoints (`/api/v1/...`) for future breaking changes
-- Include pagination on all list endpoints (even if small now)
-- Return full objects, not minimal data (easier to extend UI)
-- **Include all image URLs in responses** (client chooses format)
-- Use consistent response structure:
-  ```json
-  {
-    "data": {...},
-    "meta": {...},
-    "errors": null
-  }
-  ```
-
-#### ✅ Frontend Architecture
-- Separate API calls into service layer (not in components)
-- Use feature-based folder structure, not type-based:
-  ```
-  /features
-    /dailyChallenge
-      - DailyChallengeScreen.jsx
-      - useDailyChallenge.js
-      - dailyChallengeService.js
-    /encyclopedia
-      - EncyclopediaScreen.jsx
-      - ...
-  ```
-- Extract repeated logic into custom hooks
-- Keep component state local; only global state in Zustand
-- **Implement image fallback strategy** (SVG → PNG → Emoji)
-
-#### ✅ State Management
-- Separate concerns in Zustand store:
-  ```javascript
-  // Good: Separate slices
-  const useAuthStore = create(...)
-  const useFlagStore = create(...)
-  const useStatsStore = create(...)
-  
-  // Bad: One massive store
-  const useStore = create(...)
-  ```
-- Write selectors for complex state access
-- Keep actions pure (side effects in services)
-
-#### ✅ Testing Strategy
-- Write tests for business logic (flag algorithm, stats calculation)
-- Don't test UI in MVP (slows development)
-- Test API endpoints with Django's test suite
-- Manual testing for UX flows
-- **Test image fallback** (mock CDN failures)
+1. **Document the decision** - Add to this log with rationale
+2. **Consider reversibility** - How hard is it to undo?
+3. **Favor Django conventions** - "Convention over configuration"
+4. **Optimize for learning** - Choose options that teach Django/DRF patterns
+5. **Keep it simple** - Defer complexity until proven necessary
 
 ---
 
@@ -1562,7 +1553,7 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 
 ## Open Questions
 
-### ~~Immediate (Week 1)~~ - RESOLVED
+### ~~Immediate Questions~~ - RESOLVED
 - [x] **REST Countries API caching strategy:** Store selected fields explicitly in schema (Country model fields) + full JSON in `raw_api_response` field for flexibility
 - [x] **Token refresh strategy:** Access tokens valid for 1 day, refresh tokens valid for 30 days (industry standard for web apps). Django OAuth handles refresh automatically via django-allauth.
 - [x] **Error handling approach:** Start with Django REST Framework's default exception handling. Will evaluate need for custom exceptions after building first endpoints. (See Deferred Decisions below)
@@ -1720,15 +1711,10 @@ To ensure we don't paint ourselves into a corner, we follow these principles:
 
 ## Contact & Support
 
-**Developer:** Solo Project (You!)  
-**Project Repository:** [To be created]  
+**Developer:** Adnan Shoukfeh
+**Project Repository:** https://github.com/adnan-shoukfeh/FlagApp  
 **Issue Tracking:** [To be created]  
-**Design Feedback:** [To be determined]
 
 ---
 
-**Remember: This is your roadmap. It will evolve as you learn and build. That's expected and healthy. The goal isn't to follow this perfectly—it's to have a north star that keeps you aligned and prevents feature creep while staying flexible for growth.**
-
-**Image Strategy Note: Using CDN URLs is the right MVP choice. It's fast, free, and we can always migrate to self-hosted later if needed. The architecture supports both approaches without code changes—just update the URLs in the database.**
-
-**Now let's build this! 🚀**
+**Image Strategy Note: Use CDN URLs for the MVP. It's fast, free, and we can always migrate to self-hosted later if needed. The architecture supports both approaches without code changes—just update the URLs in the database.**

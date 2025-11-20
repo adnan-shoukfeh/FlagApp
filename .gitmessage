@@ -19,6 +19,8 @@
 #    style    (formatting, missing semicolons, etc; no code change)
 #    chore    (updating build tasks, configs, etc; no production code change)
 #    perf     (performance improvements)
+#    build    (changes to build system or external dependencies)
+#    ci       (changes to CI configuration files and scripts)
 # --------------------
 # Remember to:
 #   - Use imperative mood ("Add feature" not "Added feature")
@@ -27,4 +29,3 @@
 #   - Separate subject from body with blank line
 #   - Reference issues/PRs when applicable
 # --------------------
-# See CLAUDE.md section 12 for detailed guidelines
