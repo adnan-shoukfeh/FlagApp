@@ -10,7 +10,6 @@ from users.serializers import UserSerializer
 from flags.models import Country, DailyChallenge, Question
 from flags.serializers import (
     CountryDetailSerializer,
-    DailyChallengeSerializer,
     QuestionSerializer,
 )
 

@@ -2,14 +2,17 @@
 Flag serializers.
 """
 
-from .challenge_serializers import (
-    DailyChallengeListSerializer,
-    DailyChallengeSerializer,
-)
 from .country_serializers import (
     CountryDetailSerializer,
     CountryListSerializer,
     CountrySearchSerializer,
+)
+from .daily_challenge_serializers import (
+    DailyChallengeCountrySerializer,
+    DailyChallengeQuestionSerializer,
+    UserChallengeStatusSerializer,
+    DailyChallengeResponseSerializer,
+    DailyChallengeHistoryItemSerializer,
 )
 from .question_serializers import (
     AnswerResultSerializer,
@@ -22,8 +25,11 @@ __all__ = [
     "CountryListSerializer",
     "CountryDetailSerializer",
     "CountrySearchSerializer",
-    "DailyChallengeSerializer",
-    "DailyChallengeListSerializer",
+    "DailyChallengeCountrySerializer",
+    "DailyChallengeQuestionSerializer",
+    "UserChallengeStatusSerializer",
+    "DailyChallengeResponseSerializer",
+    "DailyChallengeHistoryItemSerializer",
     "QuestionSerializer",
     "QuestionAnswerSerializer",
     "UserAnswerSerializer",

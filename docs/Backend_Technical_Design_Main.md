@@ -37,8 +37,11 @@ This document captures all backend architecture decisions, database design, and 
 - ✅ DRF setup with ViewSets and routing
 - ✅ OAuth authentication system functional
 - ✅ JWT token generation and refresh
-- ✅ 40 tests passing (organized test suite)
-- 🔄 Next: Daily challenge endpoint implementation
+- ✅ Daily challenge system with tier-based country selection
+- ✅ DifficultyTierState and TierShownCountry models for cycle tracking
+- ✅ GET /api/v1/daily/ and /api/v1/daily/history/ endpoints
+- ✅ 57 tests passing (comprehensive test suite)
+- 🔄 Next: Answer submission endpoint implementation
 
 ---
 
@@ -250,15 +253,53 @@ flags APP:
 └────────────────────────────────────────┘
 ```
 
+### Tier State Models (Country Selection Tracking)
+
+```
+┌────────────────────────────────────────┐
+│ flags_difficultytierstate               │
+│ ├─ id (PK)                             │
+│ ├─ tier (indexed)                      │
+│ ├─ user_id (FK → User, nullable)      │
+│ ├─ cycle_number                        │
+│ ├─ cycle_start_date                    │
+│ ├─ last_selection_date                 │
+│ ├─ created_at                          │
+│ └─ updated_at                          │
+└────────────────────────────────────────┘
+           │
+           │ 1:Many
+           ▼
+┌────────────────────────────────────────┐
+│ flags_tiershowncountry                 │
+│ ├─ id (PK)                             │
+│ ├─ tier_state_id (FK → TierState)     │
+│ ├─ country_id (FK → Country)          │
+│ └─ shown_at                            │
+└────────────────────────────────────────┘
+```
+
+**Purpose:**
+- `DifficultyTierState`: Tracks cycle state for a difficulty tier
+  - MVP: Single 'default' tier with user=NULL for global daily challenge
+  - Phase 2: Multiple tiers ('easy', 'medium', 'hard') for difficulty rotation
+  - Phase 3+: User-specific tiers (user FK set) for quiz mode
+- `TierShownCountry`: Records which countries shown in current cycle
+  - Records deleted on cycle reset (all countries shown)
+  - Prevents duplicate country selection within a cycle
+
 ### Key Relationships
 
 ```
 User (1) ↔↔ (1) UserStats
 User (1) → (Many) UserAnswer
+User (1) → (Many) DifficultyTierState
 Question (1) → (Many) UserAnswer
 Country (1) → (Many) Question
 Country (1) → (Many) DailyChallenge
+Country (1) → (Many) TierShownCountry
 DailyChallenge (1) → (Many) Question
+DifficultyTierState (1) → (Many) TierShownCountry
 ```
 
 ### Index Strategy
@@ -1183,7 +1224,7 @@ class SubmitGuessView(APIView):
 
 ## 9. Testing Strategy
 
-**Status:** ✅ **COMPREHENSIVE SUITE** (40 Tests Passing)
+**Status:** ✅ **COMPREHENSIVE SUITE** (57 Tests Passing)
 
 ### Test Organization
 
@@ -1194,9 +1235,10 @@ users/tests/
 └── test_models.py        # User & UserStats model tests (13 tests)
 
 flags/tests/
-├── __init__.py           # Module documentation
-├── test_models.py        # Country, DailyChallenge, Question tests (8 tests)
-└── test_serializers.py   # Serializer tests (4 tests)
+├── __init__.py              # Module documentation
+├── test_models.py           # Country, DailyChallenge, Question tests (6 tests)
+├── test_serializers.py      # Serializer tests (4 tests)
+└── test_daily_challenge.py  # Daily challenge system tests (13 tests)
 ```
 
 ### Test Coverage by Component
@@ -1210,9 +1252,12 @@ flags/tests/
 | **User Model** | 5 tests | ✅ Passing |
 | **UserStats Model** | 8 tests | ✅ Passing |
 | **Country Model** | 3 tests | ✅ Passing |
-| **DailyChallenge Model** | 3 tests | ✅ Passing |
+| **DailyChallenge Model** | 2 tests | ✅ Passing |
 | **Question Model** | 2 tests | ✅ Passing |
 | **Serializers** | 4 tests | ✅ Passing |
+| **DifficultyTierState Model** | 4 tests | ✅ Passing |
+| **Daily Challenge API** | 7 tests | ✅ Passing |
+| **Challenge History API** | 2 tests | ✅ Passing |
 
 ### Running Tests
 
@@ -1293,6 +1338,8 @@ GET  /api/v1/stats/                    # User stats
 - ✅ `POST /api/v1/auth/token/refresh/` - Token refresh (AllowAny)
 - ✅ `GET /api/v1/countries/` - List countries (AllowAny)
 - ✅ `GET /api/v1/countries/{id}/` - Country detail (AllowAny)
+- ✅ `GET /api/v1/daily/` - Today's daily challenge (IsAuthenticated)
+- ✅ `GET /api/v1/daily/history/` - Daily challenge history (IsAuthenticated)
 - ✅ `GET /api/v1/test/` - Test endpoint (IsAuthenticated)
 
 **URL Configuration:**
@@ -1300,6 +1347,94 @@ GET  /api/v1/stats/                    # User stats
 - `CountryViewSet` registered with router in `flags/urls.py`
 - Auth endpoints in `users/urls.py`
 - All endpoints under `/api/v1/` prefix for versioning
+
+### Daily Challenge Endpoints
+
+#### GET /api/v1/daily/
+
+Returns today's daily challenge with user's attempt status.
+
+**Auth:** Required (IsAuthenticated)
+
+**Response:**
+```json
+{
+  "id": 1,
+  "date": "2025-11-20",
+  "question": {
+    "id": 42,
+    "category": "flag",
+    "format": "text_input",
+    "question_text": "Which country does this flag belong to?",
+    "metadata": {}
+  },
+  "country": {
+    "flag_emoji": "🇫🇷",
+    "flag_svg_url": "https://flagcdn.com/fr.svg",
+    "flag_png_url": "https://flagcdn.com/w320/fr.png",
+    "flag_alt_text": "The flag of France..."
+  },
+  "user_status": {
+    "has_completed": false,
+    "attempts_used": 0,
+    "attempts_remaining": 3,
+    "is_correct": null,
+    "last_attempt_at": null
+  }
+}
+```
+
+**Security:**
+- `correct_answer` is NEVER included in question
+- Country `name` is EXCLUDED (only flag data shown)
+
+#### GET /api/v1/daily/history/
+
+Returns paginated list of past daily challenges with user's answers.
+
+**Auth:** Required (IsAuthenticated)
+
+**Query Parameters:**
+- `page` (default: 1) - Page number for pagination
+
+**Response:**
+```json
+{
+  "count": 45,
+  "next": "http://localhost:8000/api/v1/daily/history/?page=2",
+  "previous": null,
+  "results": [
+    {
+      "id": 44,
+      "date": "2025-11-19",
+      "country": {
+        "code": "FRA",
+        "name": "France",
+        "flag_emoji": "🇫🇷",
+        "population": 67000000,
+        "capital": "Paris"
+      },
+      "user_answer": {
+        "is_correct": true,
+        "attempts_used": 2,
+        "answered_at": "2025-11-19T14:30:00Z"
+      }
+    },
+    {
+      "id": 43,
+      "date": "2025-11-18",
+      "country": {...},
+      "user_answer": null
+    }
+  ]
+}
+```
+
+**Notes:**
+- Today's challenge is EXCLUDED from history
+- Past challenges include full country data (name revealed)
+- `user_answer` is null if user didn't participate that day
+- Pagination settings from DRF config (PAGE_SIZE=20)
 
 ### Response Format
 
@@ -1394,6 +1529,7 @@ uv run python manage.py migrate
 uv run python manage.py test
 uv run python manage.py runserver
 uv run python manage.py shell
+uv run python manage.py load_countries  # Load country data from API
 
 # uv
 uv add package-name

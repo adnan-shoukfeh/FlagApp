@@ -287,49 +287,233 @@ class DailyChallenge(models.Model):
     def get_or_create_today(cls):
         """
         Get today's challenge, creating if it doesn't exist.
+        Uses DifficultyTierState for country selection.
+
+        TODO: Convert to scheduled Celery task in production to avoid
+        race conditions and ensure challenge exists before first request.
 
         Returns:
-            DailyChallenge: Today's challenge object
+            tuple: (DailyChallenge instance, bool created)
 
         Example:
-            challenge = DailyChallenge.get_or_create_today()
+            challenge, created = DailyChallenge.get_or_create_today()
             print(challenge.country.name)
         """
         from django.utils import timezone
 
         today = timezone.now().date()
 
-        challenge, created = cls.objects.get_or_create(
-            date=today, defaults={"country": cls._select_random_country()}
+        # Try to get existing challenge
+        try:
+            return cls.objects.get(date=today), False
+        except cls.DoesNotExist:
+            pass
+
+        # Get or create the default tier state
+        tier_state, _ = DifficultyTierState.objects.get_or_create(
+            tier='default',
+            user=None,
+            defaults={
+                'cycle_start_date': today,
+            }
         )
-        return challenge
 
-    @classmethod
-    def _select_random_country(cls):
+        # Select country using tier state
+        country = tier_state.select_next_country()
+
+        # Create challenge
+        challenge = cls.objects.create(
+            date=today,
+            country=country,
+            selection_algorithm_version='v1_tier_random'
+        )
+
+        # Create associated question
+        challenge.create_question()
+
+        return challenge, True
+
+    def create_question(self):
         """
-        MVP algorithm: Random selection without repeats.
+        Create the Question for this daily challenge.
+        MVP: Always creates a flag recognition text input question.
 
-        Rules:
-        1. Get all previously shown countries
-        2. Select randomly from remaining countries
-        3. If all shown, reset and start over
-
-        Phase 2: Will add difficulty tier logic here
+        Returns:
+            Question: The created question instance
         """
-        # Get all country codes already shown
-        shown_codes = cls.objects.values_list("country__code", flat=True)
+        question = Question.objects.create(
+            daily_challenge=self,
+            category=QuestionCategory.FLAG,
+            format=QuestionFormat.TEXT_INPUT,
+            country=self.country,
+            question_text="Which country does this flag belong to?",
+            correct_answer={
+                'answer': self.country.name,
+                'alternates': []  # TODO: Add common alternates (e.g., "USA" for "United States")
+            }
+        )
+        return question
 
-        # Get countries not yet shown
-        available = Country.objects.exclude(code__in=shown_codes)
+    def get_question(self):
+        """
+        Get the question for this challenge.
 
-        # If all countries shown, reset
+        Returns:
+            Question: The associated question, or None if not found
+        """
+        return self.questions.first()
+
+
+class DifficultyTierState(models.Model):
+    """
+    Tracks cycle state for a difficulty tier.
+
+    MVP: Single 'default' tier with user=NULL for global daily challenge.
+    Phase 2: Multiple tiers ('easy', 'medium', 'hard') for difficulty rotation.
+    Phase 3: User-specific tiers (user FK set) for quiz mode.
+
+    Design:
+    - Tracks which countries shown this cycle
+    - Resets when all countries shown
+    - Efficient database-level tracking via TierShownCountry
+    """
+
+    # === Core Identification ===
+    tier = models.CharField(
+        max_length=20,
+        db_index=True,
+        help_text="Tier name: 'default', 'easy', 'medium', 'hard', or custom",
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='tier_states',
+        help_text="NULL for global daily challenge, FK for user-specific quiz cycles",
+    )
+
+    # === Cycle Tracking ===
+    cycle_number = models.PositiveIntegerField(
+        default=1,
+        help_text="Current cycle number (increments when all countries shown)",
+    )
+
+    cycle_start_date = models.DateField(
+        help_text="When current cycle began",
+    )
+
+    last_selection_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Most recent country selection date",
+    )
+
+    # === Timestamps ===
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # === Meta Data ===
+    class Meta:
+        db_table = 'flags_difficultytierstate'
+        unique_together = ['tier', 'user']
+        ordering = ['tier', 'user']
+
+    # === Methods ===
+    def __str__(self):
+        if self.user:
+            return f"{self.user.email} - {self.tier} (cycle {self.cycle_number})"
+        return f"Global - {self.tier} (cycle {self.cycle_number})"
+
+    def select_next_country(self):
+        """
+        Select next country for this tier, handling cycle reset.
+        All operations are database-level for efficiency.
+
+        Returns:
+            Country: The selected country instance
+
+        Future extensions:
+            - Regional filtering: Add region field, filter tier_countries by Country.region
+            - User custom tiers: Query UserCountryTier when self.user is set
+        """
+        from django.utils import timezone
+
+        # Get countries eligible for this tier
+        if self.user is None:
+            # Global tier (daily challenge)
+            if self.tier == 'default':
+                tier_countries = Country.objects.all()
+            else:
+                tier_countries = Country.objects.filter(difficulty_tier=self.tier)
+        else:
+            # TODO: User-specific tier (Phase 3 quiz mode)
+            # Will query UserCountryTier model when implemented
+            tier_countries = Country.objects.all()
+
+        # Exclude already shown this cycle (efficient DB subquery)
+        shown_country_ids = self.shown_countries.values_list('country_id', flat=True)
+        available = tier_countries.exclude(id__in=shown_country_ids)
+
+        # Reset cycle if all shown
         if not available.exists():
-            available = Country.objects.all()
+            self.shown_countries.all().delete()  # Single DELETE query
+            self.cycle_number += 1
+            self.cycle_start_date = timezone.now().date()
+            self.save()
+            available = tier_countries
 
-        # Random selection using order_by('?')
-        # Note: This is simple but not efficient for large datasets
-        # Phase 2: Use better random selection algorithm
-        return available.order_by("?").first()
+        # Random selection
+        country = available.order_by('?').first()
+
+        # Record as shown
+        TierShownCountry.objects.create(tier_state=self, country=country)
+
+        # Update state
+        self.last_selection_date = timezone.now().date()
+        self.save()
+
+        return country
+
+
+class TierShownCountry(models.Model):
+    """
+    Tracks which countries have been shown in a tier's current cycle.
+
+    Records are deleted when cycle resets (all countries shown).
+    Efficient lookup via tier_state FK and unique constraint.
+    """
+
+    # === Core Identification ===
+    tier_state = models.ForeignKey(
+        'DifficultyTierState',
+        on_delete=models.CASCADE,
+        related_name='shown_countries',
+        help_text="Which tier state this belongs to",
+    )
+
+    country = models.ForeignKey(
+        'Country',
+        on_delete=models.CASCADE,
+        help_text="Country that was shown",
+    )
+
+    # === Timestamps ===
+    shown_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When this country was selected",
+    )
+
+    # === Meta Data ===
+    class Meta:
+        db_table = 'flags_tiershowncountry'
+        unique_together = ['tier_state', 'country']
+        ordering = ['-shown_at']
+
+    # === Methods ===
+    def __str__(self):
+        return f"{self.tier_state.tier} - {self.country.name}"
 
 
 class Question(models.Model):

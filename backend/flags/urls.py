@@ -6,7 +6,12 @@ All country, challenge, and flag-related endpoints.
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import CountryViewSet, test_api
+from .views import (
+    CountryViewSet,
+    DailyChallengeView,
+    DailyChallengeHistoryView,
+    test_api,
+)
 
 # Router for ViewSet-based endpoints
 # This automatically creates:
@@ -24,7 +29,9 @@ urlpatterns = [
     # Include all router URLs
     # This adds /countries/ and /countries/{id}/
     path("", include(router.urls)),
-    # FUTURE: Add these when you implement them
-    # path('daily/', DailyChallengeView.as_view(), name='daily-challenge'),
+    # Daily challenge endpoints
+    path('daily/', DailyChallengeView.as_view(), name='daily-challenge'),
+    path('daily/history/', DailyChallengeHistoryView.as_view(), name='daily-challenge-history'),
+    # FUTURE: Add when implementing answer submission
     # path('daily/answer/', DailyChallengeAnswerView.as_view(), name='daily-answer'),
 ]

@@ -126,8 +126,9 @@ class DailyChallengeModelTest(TestCase):
 
     def test_get_or_create_today_creates_new(self):
         """Test that get_or_create_today creates challenge if doesn't exist"""
-        challenge = DailyChallenge.get_or_create_today()
+        challenge, created = DailyChallenge.get_or_create_today()
 
+        self.assertTrue(created)
         self.assertIsNotNone(challenge)
         # Challenge date might be tomorrow depending on timezone/implementation
         self.assertIsInstance(challenge.date, date)
@@ -135,31 +136,15 @@ class DailyChallengeModelTest(TestCase):
 
     def test_get_or_create_today_returns_existing(self):
         """Test that get_or_create_today doesn't create duplicate"""
-        challenge1 = DailyChallenge.get_or_create_today()
-        challenge2 = DailyChallenge.get_or_create_today()
+        challenge1, created1 = DailyChallenge.get_or_create_today()
+        challenge2, created2 = DailyChallenge.get_or_create_today()
 
+        # First call creates, second returns existing
+        self.assertTrue(created1)
+        self.assertFalse(created2)
         # Should be the same object
         self.assertEqual(challenge1.id, challenge2.id)
         self.assertEqual(challenge1.country, challenge2.country)
-
-    def test_selection_algorithm_no_repeats(self):
-        """Test that algorithm doesn't repeat until all countries shown"""
-        # Show USA today
-        DailyChallenge.objects.create(date=date.today(), country=self.usa)
-
-        # Tomorrow should be France (only remaining country)
-        tomorrow_country = DailyChallenge._select_random_country()
-        self.assertEqual(tomorrow_country, self.france)
-
-    def test_selection_algorithm_resets(self):
-        """Test that algorithm resets after all countries shown"""
-        # Show both countries
-        DailyChallenge.objects.create(date=date(2024, 1, 1), country=self.usa)
-        DailyChallenge.objects.create(date=date(2024, 1, 2), country=self.france)
-
-        # Next selection should reset and choose from all countries
-        next_country = DailyChallenge._select_random_country()
-        self.assertIn(next_country, [self.usa, self.france])
 
 
 class QuestionModelTest(TestCase):

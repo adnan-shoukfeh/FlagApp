@@ -173,16 +173,19 @@
 
   - Custom User model with UserStats
   - All core models (Country, DailyChallenge, Question, UserAnswer)
+  - Tier state models (DifficultyTierState, TierShownCountry) for cycle tracking
+  - Daily challenge system with tier-based country selection
   - Serializer architecture with 10+ serializers
   - OAuth authentication with JWT
   - DRF ViewSets and URL routing
-  - 40 passing tests (auth, models, serializers)
+  - Daily challenge endpoints (GET /api/v1/daily/, GET /api/v1/daily/history/)
+  - Country data loading (`load_countries` command)
+  - 57 passing tests (auth, models, serializers, daily challenge, commands)
 
   **Next Steps:**
 
-  - Daily challenge endpoint implementation
-  - Country data loading from REST Countries API
-  - Answer submission and validation logic
+  - Answer submission and validation endpoint
+  - React web frontend development
 
   ## Important Notes
 

@@ -248,6 +248,13 @@ uv run python manage.py loaddata fixture.json
 
 # Dump data to fixture
 uv run python manage.py dumpdata users > users_fixture.json
+
+# ===== CUSTOM COMMANDS =====
+
+# Load country data from REST Countries API
+uv run python manage.py load_countries
+# Note: Idempotent - safe to run multiple times
+# Fetches 250 countries, makes 2 API calls (10-field limit)
 ```
 
 ### uv Package Management
@@ -523,13 +530,10 @@ uv run python manage.py shell
 uv run python manage.py test app.tests.test_views
 ```
 
-### Loading Country Data (Future)
+### Loading Country Data
 
 ```bash
-# When REST Countries data loading is implemented:
-
-# Create management command
-# backend/flags/management/commands/load_countries.py
+# Load countries from REST Countries API
 
 # Run command
 uv run python manage.py load_countries
@@ -538,6 +542,47 @@ uv run python manage.py load_countries
 uv run python manage.py shell
 >>> from flags.models import Country
 >>> Country.objects.count()  # Should be 195
+```
+
+### Daily Challenge Management
+
+```bash
+# ===== CHECK TODAY'S CHALLENGE =====
+
+# Get today's challenge details
+uv run python manage.py shell -c "
+from flags.models import DailyChallenge
+challenge, created = DailyChallenge.get_or_create_today()
+print(f'Today: {challenge.country.flag_emoji} {challenge.country.name}')
+print(f'Created: {created}')
+"
+
+# ===== CHECK TIER STATE =====
+
+# View current tier state and cycle information
+uv run python manage.py shell -c "
+from flags.models import DifficultyTierState
+state = DifficultyTierState.objects.get(tier='default', user=None)
+print(f'Cycle: {state.cycle_number}')
+print(f'Countries shown this cycle: {state.shown_countries.count()}')
+"
+
+# ===== VIEW RECENT CHALLENGES =====
+
+# Display last 5 daily challenges
+uv run python manage.py shell -c "
+from flags.models import DailyChallenge
+for c in DailyChallenge.objects.order_by('-date')[:5]:
+    print(f'{c.date}: {c.country.flag_emoji} {c.country.name}')
+"
+
+# ===== MANUAL TESTING =====
+
+# Test daily challenge endpoint (requires JWT token)
+curl -H "Authorization: Bearer YOUR_TOKEN" http://127.0.0.1:8000/api/v1/daily/
+
+# Test challenge history endpoint
+curl -H "Authorization: Bearer YOUR_TOKEN" http://127.0.0.1:8000/api/v1/daily/history/
 ```
 
 ### Debugging in Django Shell
