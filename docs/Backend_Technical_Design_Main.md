@@ -257,10 +257,10 @@ flags APP:
 
 ```
 ┌────────────────────────────────────────┐
-│ flags_difficultytierstate               │
+│ flags_difficultytierstate              │
 │ ├─ id (PK)                             │
 │ ├─ tier (indexed)                      │
-│ ├─ user_id (FK → User, nullable)      │
+│ ├─ user_id (FK → User, nullable)       │
 │ ├─ cycle_number                        │
 │ ├─ cycle_start_date                    │
 │ ├─ last_selection_date                 │
@@ -273,8 +273,8 @@ flags APP:
 ┌────────────────────────────────────────┐
 │ flags_tiershowncountry                 │
 │ ├─ id (PK)                             │
-│ ├─ tier_state_id (FK → TierState)     │
-│ ├─ country_id (FK → Country)          │
+│ ├─ tier_state_id (FK → TierState)      │
+│ ├─ country_id (FK → Country)           │
 │ └─ shown_at                            │
 └────────────────────────────────────────┘
 ```
