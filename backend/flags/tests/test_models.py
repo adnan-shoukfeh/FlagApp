@@ -7,6 +7,7 @@ Tests cover:
 - Question model and answer validation
 - UserAnswer model
 - Image fields handling
+- Country alternate names
 """
 
 from datetime import date
@@ -14,6 +15,7 @@ from datetime import date
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
+from flags.data import get_alternates_for_country
 from flags.models import (
     Country,
     DailyChallenge,
@@ -329,3 +331,112 @@ class CountryImageFieldsTest(TestCase):
 
         self.assertIsNone(country.coat_of_arms_svg_url)
         self.assertIsNone(country.coat_of_arms_png_url)
+
+
+class CountryAlternatesTest(TestCase):
+    """Tests for country alternate name handling"""
+
+    def test_get_alternates_with_api_data(self):
+        """Test merging API alternates"""
+        api_alternates = ["US", "USA", "United States of America"]
+        result = get_alternates_for_country("USA", api_alternates)
+
+        # Should be lowercase and sorted
+        self.assertIn("us", result)
+        self.assertIn("usa", result)
+        self.assertIn("united states of america", result)
+
+    def test_get_alternates_without_api_data(self):
+        """Test with no API alternates"""
+        result = get_alternates_for_country("XYZ", None)
+        self.assertEqual(result, [])
+
+    def test_get_alternates_removes_duplicates(self):
+        """Test that duplicates are removed (case-insensitive)"""
+        api_alternates = ["USA", "usa", "Usa"]
+        result = get_alternates_for_country("USA", api_alternates)
+
+        # Should only have one "usa"
+        self.assertEqual(result.count("usa"), 1)
+
+    def test_create_question_includes_alternates(self):
+        """Test that create_question populates alternates from API data"""
+        country = Country.objects.create(
+            code="USA",
+            name="United States",
+            flag_emoji="🇺🇸",
+            flag_svg_url="https://flagcdn.com/us.svg",
+            flag_png_url="https://flagcdn.com/w320/us.png",
+            flag_alt_text="USA flag",
+            population=331000000,
+            capital="Washington",
+            largest_city="NYC",
+            languages=[],
+            area_km2=1,
+            currencies={},
+            latitude=0,
+            longitude=0,
+            raw_api_response={
+                "altSpellings": ["US", "USA", "United States of America"],
+                "name": {
+                    "common": "United States",
+                    "official": "United States of America",
+                },
+            },
+        )
+
+        challenge = DailyChallenge.objects.create(
+            date=date.today(),
+            country=country,
+        )
+        question = challenge.create_question()
+
+        # Check alternates are populated
+        alternates = question.correct_answer.get("alternates", [])
+        self.assertIn("us", alternates)
+        self.assertIn("usa", alternates)
+        self.assertIn("united states of america", alternates)
+
+    def test_question_validates_alternate_answers(self):
+        """Test that question validation accepts alternate spellings"""
+        country = Country.objects.create(
+            code="USA",
+            name="United States",
+            flag_emoji="🇺🇸",
+            flag_svg_url="https://flagcdn.com/us.svg",
+            flag_png_url="https://flagcdn.com/w320/us.png",
+            flag_alt_text="USA flag",
+            population=331000000,
+            capital="Washington",
+            largest_city="NYC",
+            languages=[],
+            area_km2=1,
+            currencies={},
+            latitude=0,
+            longitude=0,
+            raw_api_response={
+                "altSpellings": ["US", "USA", "United States of America"],
+                "name": {"common": "United States", "official": "United States of America"},
+            },
+        )
+
+        challenge = DailyChallenge.objects.create(
+            date=date.today(),
+            country=country,
+        )
+        question = challenge.create_question()
+
+        # Primary name should work
+        is_correct, _ = question.validate_answer({"text": "United States"})
+        self.assertTrue(is_correct)
+
+        # Alternates should work
+        is_correct, _ = question.validate_answer({"text": "USA"})
+        self.assertTrue(is_correct)
+
+        is_correct, _ = question.validate_answer({"text": "us"})
+        self.assertTrue(is_correct)
+
+        # Wrong answer should fail
+        is_correct, _ = question.validate_answer({"text": "Canada"})
+        self.assertFalse(is_correct)

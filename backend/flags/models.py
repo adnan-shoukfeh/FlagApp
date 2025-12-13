@@ -341,6 +341,21 @@ class DailyChallenge(models.Model):
         Returns:
             Question: The created question instance
         """
+        from flags.data import get_alternates_for_country
+
+        # Get alternates from API data and manual overrides
+        api_alternates = []
+        if self.country.raw_api_response:
+            api_alternates = self.country.raw_api_response.get('altSpellings', [])
+
+        # Also include official name if different from common name
+        name_data = self.country.raw_api_response.get('name', {}) if self.country.raw_api_response else {}
+        official_name = name_data.get('official', '')
+        if official_name and official_name.lower() != self.country.name.lower():
+            api_alternates = list(api_alternates) + [official_name]
+
+        alternates = get_alternates_for_country(self.country.code, api_alternates)
+
         question = Question.objects.create(
             daily_challenge=self,
             category=QuestionCategory.FLAG,
@@ -349,7 +364,7 @@ class DailyChallenge(models.Model):
             question_text="Which country does this flag belong to?",
             correct_answer={
                 'answer': self.country.name,
-                'alternates': []  # TODO: Add common alternates (e.g., "USA" for "United States")
+                'alternates': alternates,
             }
         )
         return question

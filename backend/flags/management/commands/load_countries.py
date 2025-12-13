@@ -27,8 +27,8 @@ class Command(BaseCommand):
     # API has a 10-field limit, so we split into multiple calls
     # Call 1: Core data (10 fields max)
     API_FIELDS_CALL1 = "cca3,name,flag,flags,coatOfArms,population,capital,latlng,area,languages"
-    # Call 2: Currencies (2 fields)
-    API_FIELDS_CALL2 = "cca3,currencies"
+    # Call 2: Currencies and alternate spellings
+    API_FIELDS_CALL2 = "cca3,currencies,altSpellings"
 
     def handle(self, *args, **options):
         """Main command execution"""
@@ -121,15 +121,23 @@ class Command(BaseCommand):
 
         # Merge data by cca3 code
         self.stdout.write("\nMerging data from both API calls...")
-        currencies_by_code = {country["cca3"]: country["currencies"] for country in data_call2}
+        call2_by_code = {
+            country["cca3"]: {
+                "currencies": country.get("currencies", {}),
+                "altSpellings": country.get("altSpellings", []),
+            }
+            for country in data_call2
+        }
 
-        # Add currencies to main data
+        # Add currencies and altSpellings to main data
         for country in data_call1:
             code = country.get("cca3")
-            if code in currencies_by_code:
-                country["currencies"] = currencies_by_code[code]
+            if code in call2_by_code:
+                country["currencies"] = call2_by_code[code]["currencies"]
+                country["altSpellings"] = call2_by_code[code]["altSpellings"]
             else:
                 country["currencies"] = {}
+                country["altSpellings"] = []
 
         self.stdout.write(self.style.SUCCESS(f"  ✓ Data merged successfully"))
         return data_call1

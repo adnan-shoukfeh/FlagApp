@@ -132,7 +132,7 @@
 
   ### Testing Strategy
 
-  40 tests organized by component. Mock external services (Google OAuth). Fresh database per test via fixtures.
+  Tests organized by component. Mock external services (Google OAuth). Fresh database per test via fixtures.
 
   ### Documentation Updates
 
