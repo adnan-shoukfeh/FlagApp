@@ -1,7 +1,7 @@
 # Backend Technical Design Document
 
 **Project:** Flag Learning App - Backend
-**Last Updated:** December 13, 2025 (Answer Submission Endpoint Complete)
+**Last Updated:** December 13, 2025 (Country Name Alternates)
 **Status:** Development - Phase 1 (MVP) - Backend Core Complete
 **Developer:** Adnan Shoukfeh
 
@@ -41,7 +41,8 @@ This document captures all backend architecture decisions, database design, and 
 - ✅ DifficultyTierState and TierShownCountry models for cycle tracking
 - ✅ GET /api/v1/daily/ and /api/v1/daily/history/ endpoints
 - ✅ POST /api/v1/daily/answer/ endpoint with stats updates
-- ✅ 71 tests passing (comprehensive test suite)
+- ✅ Country name alternates for flexible answer validation
+- ✅ 76 tests passing (comprehensive test suite)
 - 🔄 Next: React web frontend development
 
 ---
@@ -365,6 +366,9 @@ backend/
 │   └── admin.py
 ├── flags/                 # Flags app
 │   ├── migrations/
+│   ├── data/
+│   │   ├── __init__.py
+│   │   └── country_alternates.py  # Alternate name handling
 │   ├── serializers/
 │   │   ├── country_serializers.py
 │   │   ├── challenge_serializers.py
@@ -950,6 +954,39 @@ class Question(models.Model):
         is_correct = user_text == correct or user_text in alternates
         return is_correct, f"Correct answer: {self.correct_answer['answer']}"
 
+### Country Name Alternates
+
+Users can answer with alternate country names (e.g., "USA" instead of "United States") and be marked correct. Alternates are sourced from:
+
+1. **REST Countries API** - `altSpellings` field (e.g., ["US", "USA", "United States of America"])
+2. **Official names** - If different from common name (e.g., "French Republic" for France)
+3. **Manual overrides** - `flags/data/country_alternates.py` for custom additions
+
+```python
+# flags/data/country_alternates.py
+MANUAL_ALTERNATES = {
+    # Add entries here as needed - these supplement API altSpellings
+    # "USA": ["America", "The States"],
+    # "GBR": ["England", "Britain"],
+}
+
+def get_alternates_for_country(country_code: str, api_alternates: list | None = None) -> list:
+    """Merge API and manual alternates, return lowercase deduplicated list."""
+```
+
+**How it works:**
+- `load_countries` command fetches `altSpellings` from REST Countries API
+- `DailyChallenge.create_question()` populates `correct_answer.alternates`
+- `Question.validate_answer()` checks user input against all alternates (case-insensitive)
+
+**Example correct_answer structure:**
+```json
+{
+    "answer": "United States",
+    "alternates": ["us", "usa", "united states of america"]
+}
+```
+
 class UserAnswer(models.Model):
     """Records user's answer to question."""
     
@@ -1225,7 +1262,7 @@ class SubmitGuessView(APIView):
 
 ## 9. Testing Strategy
 
-**Status:** ✅ **COMPREHENSIVE SUITE** (71 Tests Passing)
+**Status:** ✅ **COMPREHENSIVE SUITE** (76 Tests Passing)
 
 ### Test Organization
 
@@ -1237,7 +1274,7 @@ users/tests/
 
 flags/tests/
 ├── __init__.py              # Module documentation
-├── test_models.py           # Country, DailyChallenge, Question tests (6 tests)
+├── test_models.py           # Country, DailyChallenge, Question, Alternates tests (11 tests)
 ├── test_serializers.py      # Serializer tests (4 tests)
 └── test_daily_challenge.py  # Daily challenge system tests (13 tests)
 ```
@@ -1260,6 +1297,7 @@ flags/tests/
 | **Daily Challenge API** | 7 tests | ✅ Passing |
 | **Challenge History API** | 2 tests | ✅ Passing |
 | **Answer Submission API** | 14 tests | ✅ Passing |
+| **Country Alternates** | 5 tests | ✅ Passing |
 
 ### Running Tests
 
@@ -1656,9 +1694,9 @@ postgresql://flaglearning_user:dev_password_2024@localhost:5432/flaglearning_dev
 
 ## Document Version
 
-**Version:** 1.3
+**Version:** 1.4
 **Date:** December 13, 2025
-**Status:** Answer Submission Endpoint Complete
+**Status:** Country Name Alternates
 
 **Changelog:**
 
@@ -1668,6 +1706,7 @@ postgresql://flaglearning_user:dev_password_2024@localhost:5432/flaglearning_dev
 | 1.1 | Oct 31, 2025 | Added Serializer Architecture section, documented serializer implementation (serializers, DRF setup, URL routing, test endpoints), added note about temporary AllowAny permission setting |
 | 1.2 | Nov 11, 2025 | **OAuth Implementation Complete**: Updated Authentication System section with full implementation details and "IMPLEMENTED" status; documented JWT configuration (token lifetimes, rotation, blacklisting); added GoogleLoginView implementation and URL routing structure; updated Testing Strategy with 40 passing tests and organized test suite; added Troubleshooting section for OAuth issues; updated Executive Summary to reflect OAuth completion; documented all authentication endpoints and token flow |
 | 1.3 | Dec 13, 2025 | **Answer Submission Endpoint Complete**: Added POST /api/v1/daily/answer/ endpoint with full documentation (request/response formats, error handling, security notes); updated test count to 71 (added 14 answer submission tests); added time_taken_seconds field to QuestionAnswerSerializer; implemented MAX_DAILY_ATTEMPTS constant; added stats update logic (streak on first correct, reset on final failure) |
+| 1.4 | Dec 13, 2025 | **Country Name Alternates**: Added flags/data/ module with get_alternates_for_country(); load_countries now fetches altSpellings from API; DailyChallenge.create_question() populates alternates; added Country Name Alternates section to documentation; updated test count to 76 (added 5 alternate tests); updated project structure to include flags/data/ |
 
 ---
 
