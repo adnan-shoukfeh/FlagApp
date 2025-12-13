@@ -1,8 +1,8 @@
 # Backend Technical Design Document
 
-**Project:** Flag Learning App - Backend  
-**Last Updated:** November 11, 2025 (OAuth & Authentication Complete)  
-**Status:** Development - Phase 1 (MVP) - OAuth & Authentication Complete  
+**Project:** Flag Learning App - Backend
+**Last Updated:** December 13, 2025 (Answer Submission Endpoint Complete)
+**Status:** Development - Phase 1 (MVP) - Backend Core Complete
 **Developer:** Adnan Shoukfeh
 
 ---
@@ -40,8 +40,9 @@ This document captures all backend architecture decisions, database design, and 
 - ✅ Daily challenge system with tier-based country selection
 - ✅ DifficultyTierState and TierShownCountry models for cycle tracking
 - ✅ GET /api/v1/daily/ and /api/v1/daily/history/ endpoints
-- ✅ 57 tests passing (comprehensive test suite)
-- 🔄 Next: Answer submission endpoint implementation
+- ✅ POST /api/v1/daily/answer/ endpoint with stats updates
+- ✅ 71 tests passing (comprehensive test suite)
+- 🔄 Next: React web frontend development
 
 ---
 
@@ -1224,7 +1225,7 @@ class SubmitGuessView(APIView):
 
 ## 9. Testing Strategy
 
-**Status:** ✅ **COMPREHENSIVE SUITE** (57 Tests Passing)
+**Status:** ✅ **COMPREHENSIVE SUITE** (71 Tests Passing)
 
 ### Test Organization
 
@@ -1258,6 +1259,7 @@ flags/tests/
 | **DifficultyTierState Model** | 4 tests | ✅ Passing |
 | **Daily Challenge API** | 7 tests | ✅ Passing |
 | **Challenge History API** | 2 tests | ✅ Passing |
+| **Answer Submission API** | 14 tests | ✅ Passing |
 
 ### Running Tests
 
@@ -1340,6 +1342,7 @@ GET  /api/v1/stats/                    # User stats
 - ✅ `GET /api/v1/countries/{id}/` - Country detail (AllowAny)
 - ✅ `GET /api/v1/daily/` - Today's daily challenge (IsAuthenticated)
 - ✅ `GET /api/v1/daily/history/` - Daily challenge history (IsAuthenticated)
+- ✅ `POST /api/v1/daily/answer/` - Submit answer (IsAuthenticated)
 - ✅ `GET /api/v1/test/` - Test endpoint (IsAuthenticated)
 
 **URL Configuration:**
@@ -1435,6 +1438,69 @@ Returns paginated list of past daily challenges with user's answers.
 - Past challenges include full country data (name revealed)
 - `user_answer` is null if user didn't participate that day
 - Pagination settings from DRF config (PAGE_SIZE=20)
+
+#### POST /api/v1/daily/answer/
+
+Submit an answer for today's daily challenge.
+
+**Auth:** Required (IsAuthenticated)
+
+**Request Body:**
+```json
+{
+  "answer_data": {"text": "France"},
+  "time_taken_seconds": 15
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `answer_data` | object | Yes | User's answer (structure depends on question format) |
+| `time_taken_seconds` | integer | No | Time taken to answer (0-3600 seconds) |
+
+**Success Response (200):**
+```json
+{
+  "is_correct": true,
+  "explanation": "Correct answer: France",
+  "attempts_remaining": 2,
+  "user_answer_id": 123,
+  "correct_answer": {"answer": "France", "alternates": ["French Republic"]}
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `is_correct` | boolean | Whether the answer was correct |
+| `explanation` | string | Explanation of the result |
+| `attempts_remaining` | integer | Attempts left (0-2 after submission) |
+| `user_answer_id` | integer | ID of the created UserAnswer record |
+| `correct_answer` | object | Only included when challenge is completed |
+
+**Security:**
+- `correct_answer` is ONLY revealed when challenge is completed (correct or all 3 attempts exhausted)
+- Max 3 attempts per daily challenge
+
+**Error Responses:**
+
+*Already answered correctly (400):*
+```json
+{"error": "You have already answered this challenge correctly."}
+```
+
+*No attempts remaining (400):*
+```json
+{"error": "No attempts remaining for today's challenge."}
+```
+
+*Invalid request body (400):*
+```json
+{"answer_data": ["This field is required."]}
+```
+
+**Stats Updates:**
+- On correct answer: Updates streak (increment if consecutive day, reset to 1 otherwise)
+- On final wrong answer (3rd attempt): Resets streak, adds country to incorrect list
 
 ### Response Format
 
@@ -1590,9 +1656,9 @@ postgresql://flaglearning_user:dev_password_2024@localhost:5432/flaglearning_dev
 
 ## Document Version
 
-**Version:** 1.2  
-**Date:** November 11, 2025  
-**Status:** OAuth & Authentication Complete
+**Version:** 1.3
+**Date:** December 13, 2025
+**Status:** Answer Submission Endpoint Complete
 
 **Changelog:**
 
@@ -1601,6 +1667,7 @@ postgresql://flaglearning_user:dev_password_2024@localhost:5432/flaglearning_dev
 | 1.0 | Oct 30, 2025 | Initial version - models, migrations, database setup |
 | 1.1 | Oct 31, 2025 | Added Serializer Architecture section, documented serializer implementation (serializers, DRF setup, URL routing, test endpoints), added note about temporary AllowAny permission setting |
 | 1.2 | Nov 11, 2025 | **OAuth Implementation Complete**: Updated Authentication System section with full implementation details and "IMPLEMENTED" status; documented JWT configuration (token lifetimes, rotation, blacklisting); added GoogleLoginView implementation and URL routing structure; updated Testing Strategy with 40 passing tests and organized test suite; added Troubleshooting section for OAuth issues; updated Executive Summary to reflect OAuth completion; documented all authentication endpoints and token flow |
+| 1.3 | Dec 13, 2025 | **Answer Submission Endpoint Complete**: Added POST /api/v1/daily/answer/ endpoint with full documentation (request/response formats, error handling, security notes); updated test count to 71 (added 14 answer submission tests); added time_taken_seconds field to QuestionAnswerSerializer; implemented MAX_DAILY_ATTEMPTS constant; added stats update logic (streak on first correct, reset on final failure) |
 
 ---
 
