@@ -344,3 +344,252 @@ class DailyChallengeAPITests(APITestCase):
         self.assertIsNotNone(yesterday_item['user_answer'])
         self.assertEqual(yesterday_item['user_answer']['is_correct'], False)
         self.assertEqual(yesterday_item['user_answer']['attempts_used'], 1)
+
+
+class DailyChallengeAnswerAPITests(APITestCase):
+    """Tests for daily challenge answer submission endpoint."""
+
+    def setUp(self):
+        """Create test user and countries."""
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        # Create test country with a known name
+        self.country = Country.objects.create(
+            code="FRA",
+            name="France",
+            flag_emoji="🇫🇷",
+            flag_svg_url="http://example.com/fra.svg",
+            flag_png_url="http://example.com/fra.png",
+            flag_alt_text="Flag of France",
+            latitude=46.0,
+            longitude=2.0,
+            area_km2=640679.0,
+            population=67000000,
+            capital="Paris",
+            largest_city="Paris",
+        )
+
+        # Create today's challenge with this country
+        today = timezone.now().date()
+        self.challenge = DailyChallenge.objects.create(
+            date=today,
+            country=self.country,
+        )
+        self.question = self.challenge.create_question()
+
+    def test_answer_submission_correct(self):
+        """Test submitting a correct answer."""
+        response = self.client.post('/api/v1/daily/answer/', {
+            'answer_data': {'text': 'France'}
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['is_correct'])
+        self.assertEqual(response.data['attempts_remaining'], 2)
+        self.assertIn('user_answer_id', response.data)
+        # correct_answer revealed on correct answer
+        self.assertIn('correct_answer', response.data)
+
+    def test_answer_submission_incorrect(self):
+        """Test submitting an incorrect answer."""
+        response = self.client.post('/api/v1/daily/answer/', {
+            'answer_data': {'text': 'Germany'}
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['is_correct'])
+        self.assertEqual(response.data['attempts_remaining'], 2)
+        # correct_answer NOT revealed (still have attempts)
+        self.assertNotIn('correct_answer', response.data)
+
+    def test_answer_submission_case_insensitive(self):
+        """Test that answer validation is case-insensitive."""
+        response = self.client.post('/api/v1/daily/answer/', {
+            'answer_data': {'text': 'FRANCE'}
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['is_correct'])
+
+    def test_answer_submission_with_time_taken(self):
+        """Test submitting answer with time_taken_seconds."""
+        response = self.client.post('/api/v1/daily/answer/', {
+            'answer_data': {'text': 'France'},
+            'time_taken_seconds': 15
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify time was recorded
+        user_answer = UserAnswer.objects.get(id=response.data['user_answer_id'])
+        self.assertEqual(user_answer.time_taken_seconds, 15)
+
+    def test_answer_submission_requires_auth(self):
+        """Test that answer submission requires authentication."""
+        self.client.logout()
+        response = self.client.post('/api/v1/daily/answer/', {
+            'answer_data': {'text': 'France'}
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_answer_submission_invalid_data(self):
+        """Test submitting invalid answer data."""
+        # Missing answer_data
+        response = self.client.post('/api/v1/daily/answer/', {}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # answer_data is not an object
+        response = self.client.post('/api/v1/daily/answer/', {
+            'answer_data': 'France'
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_answer_submission_max_attempts(self):
+        """Test that only 3 attempts are allowed."""
+        # Submit 3 wrong answers
+        for i in range(3):
+            response = self.client.post('/api/v1/daily/answer/', {
+                'answer_data': {'text': f'Wrong{i}'}
+            }, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # 4th attempt should be rejected
+        response = self.client.post('/api/v1/daily/answer/', {
+            'answer_data': {'text': 'France'}
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', response.data)
+        self.assertIn('No attempts remaining', response.data['error'])
+
+    def test_answer_submission_correct_answer_revealed_on_exhaustion(self):
+        """Test that correct_answer is revealed when attempts are exhausted."""
+        # Submit 2 wrong answers
+        for i in range(2):
+            self.client.post('/api/v1/daily/answer/', {
+                'answer_data': {'text': f'Wrong{i}'}
+            }, format='json')
+
+        # 3rd (final) wrong answer
+        response = self.client.post('/api/v1/daily/answer/', {
+            'answer_data': {'text': 'Wrong3'}
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['is_correct'])
+        self.assertEqual(response.data['attempts_remaining'], 0)
+        # correct_answer SHOULD be revealed
+        self.assertIn('correct_answer', response.data)
+        self.assertEqual(response.data['correct_answer']['answer'], 'France')
+
+    def test_answer_submission_prevents_duplicate_correct(self):
+        """Test that user cannot submit after correct answer."""
+        # Submit correct answer
+        self.client.post('/api/v1/daily/answer/', {
+            'answer_data': {'text': 'France'}
+        }, format='json')
+
+        # Try to submit again
+        response = self.client.post('/api/v1/daily/answer/', {
+            'answer_data': {'text': 'France'}
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', response.data)
+        self.assertIn('already answered', response.data['error'])
+
+    def test_answer_submission_updates_streak_on_correct(self):
+        """Test that streak is updated on correct answer."""
+        from users.models import UserStats
+
+        # Ensure stats exist
+        stats, _ = UserStats.objects.get_or_create(user=self.user)
+        initial_correct = stats.total_correct
+
+        # Submit correct answer
+        self.client.post('/api/v1/daily/answer/', {
+            'answer_data': {'text': 'France'}
+        }, format='json')
+
+        # Verify stats updated
+        stats.refresh_from_db()
+        self.assertEqual(stats.current_streak, 1)  # First correct = streak of 1
+        self.assertEqual(stats.total_correct, initial_correct + 1)
+
+    def test_answer_submission_updates_streak_on_failure(self):
+        """Test that streak is reset and country tracked on failure."""
+        from users.models import UserStats
+
+        # Set up a streak
+        stats, _ = UserStats.objects.get_or_create(user=self.user)
+        stats.current_streak = 5
+        stats.save()
+
+        # Exhaust all attempts with wrong answers
+        for i in range(3):
+            self.client.post('/api/v1/daily/answer/', {
+                'answer_data': {'text': f'Wrong{i}'}
+            }, format='json')
+
+        # Verify stats updated
+        stats.refresh_from_db()
+        self.assertEqual(stats.current_streak, 0)  # Streak broken
+        self.assertIn('FRA', stats.incorrect_countries)
+
+    def test_answer_submission_streak_not_updated_on_intermediate_wrong(self):
+        """Test that streak is NOT updated on wrong answer if attempts remain."""
+        from users.models import UserStats
+
+        # Set up a streak
+        stats, _ = UserStats.objects.get_or_create(user=self.user)
+        stats.current_streak = 5
+        stats.save()
+
+        # Submit one wrong answer (2 attempts remain)
+        self.client.post('/api/v1/daily/answer/', {
+            'answer_data': {'text': 'Wrong'}
+        }, format='json')
+
+        # Verify streak NOT changed yet
+        stats.refresh_from_db()
+        self.assertEqual(stats.current_streak, 5)  # Still 5
+
+    def test_answer_submission_creates_user_answer(self):
+        """Test that UserAnswer record is created."""
+        response = self.client.post('/api/v1/daily/answer/', {
+            'answer_data': {'text': 'France'}
+        }, format='json')
+
+        # Verify UserAnswer created
+        user_answer = UserAnswer.objects.get(
+            user=self.user,
+            question=self.question
+        )
+        self.assertEqual(user_answer.answer_data, {'text': 'France'})
+        self.assertTrue(user_answer.is_correct)
+        self.assertEqual(user_answer.attempt_number, 1)
+
+    def test_answer_submission_attempt_numbers(self):
+        """Test that attempt_number increments correctly."""
+        # Submit 3 wrong answers
+        for i in range(3):
+            self.client.post('/api/v1/daily/answer/', {
+                'answer_data': {'text': f'Wrong{i}'}
+            }, format='json')
+
+        # Verify attempt numbers
+        answers = UserAnswer.objects.filter(
+            user=self.user,
+            question=self.question
+        ).order_by('attempt_number')
+
+        self.assertEqual(answers.count(), 3)
+        for i, answer in enumerate(answers, 1):
+            self.assertEqual(answer.attempt_number, i)
