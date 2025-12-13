@@ -167,26 +167,6 @@
   2. Create generator function
   3. Update `Question.validate_answer()` method
 
-  ## Current Status
-
-  **Implemented:**
-
-  - Custom User model with UserStats
-  - All core models (Country, DailyChallenge, Question, UserAnswer)
-  - Tier state models (DifficultyTierState, TierShownCountry) for cycle tracking
-  - Daily challenge system with tier-based country selection
-  - Serializer architecture with 10+ serializers
-  - OAuth authentication with JWT
-  - DRF ViewSets and URL routing
-  - Daily challenge endpoints (GET /api/v1/daily/, GET /api/v1/daily/history/)
-  - Country data loading (`load_countries` command)
-  - 57 passing tests (auth, models, serializers, daily challenge, commands)
-
-  **Next Steps:**
-
-  - Answer submission and validation endpoint
-  - React web frontend development
-
   ## Important Notes
 
   ### What NOT to Do
