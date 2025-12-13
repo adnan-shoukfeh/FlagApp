@@ -47,6 +47,13 @@ class QuestionAnswerSerializer(serializers.Serializer):
     answer_data = serializers.JSONField(
         help_text="User's answer. Structure depends on question format."
     )
+    time_taken_seconds = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        min_value=0,
+        max_value=3600,  # Max 1 hour
+        help_text="Time taken to answer in seconds (optional)."
+    )
 
     def validate_answer_data(self, value):
         """
@@ -96,17 +103,15 @@ class UserAnswerSerializer(serializers.ModelSerializer):
 
 class AnswerResultSerializer(serializers.Serializer):
     """
-    Response after user submits an answer.
+    Response structure after user submits an answer.
 
-    Pattern: API response serializer (not model-backed).
-    This defines what we send back after validating guess.
+    This serializer documents the API contract for POST /api/v1/daily/answer/.
+    The view builds this response dict directly for flexibility, but this
+    serializer serves as documentation and could be used for response validation.
     """
 
     is_correct = serializers.BooleanField()
     explanation = serializers.CharField()
     attempts_remaining = serializers.IntegerField()
-    correct_answer = serializers.JSONField(required=False)  # Only if wrong
+    correct_answer = serializers.JSONField(required=False)  # Only when challenge completed
     user_answer_id = serializers.IntegerField()
-
-    # This serializer documents our API contract:
-    # POST /api/daily/answer/ returns this structure

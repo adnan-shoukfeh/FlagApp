@@ -8,6 +8,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     CountryViewSet,
+    DailyChallengeAnswerView,
     DailyChallengeHistoryView,
     DailyChallengeView,
     test_api,
@@ -36,6 +37,9 @@ urlpatterns = [
         DailyChallengeHistoryView.as_view(),
         name="daily-challenge-history",
     ),
-    # FUTURE: Add when implementing answer submission
-    # path('daily/answer/', DailyChallengeAnswerView.as_view(), name='daily-answer'),
+    path(
+        "daily/answer/",
+        DailyChallengeAnswerView.as_view(),
+        name="daily-challenge-answer",
+    ),
 ]
