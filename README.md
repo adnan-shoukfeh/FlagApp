@@ -1,336 +1,98 @@
-# [WIP] Globule - Flag App Temporary Name
+# Globule
 
-> A geography learning application focused on flag recognition through daily challenges. Learn flags, capitals, and country facts through gamified micro-learning.
+> A daily geography challenge app. Identify flags, learn countries, build streaks.
 
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Django](https://img.shields.io/badge/django-5.0+-green.svg)](https://www.djangoproject.com/)
-[![PostgreSQL](https://img.shields.io/badge/postgresql-14+-blue.svg)](https://www.postgresql.org/)
-[![Development Status](https://img.shields.io/badge/status-in%20development-yellow.svg)](https://github.com/adnan-shoukfeh/FlagApp)
+[![React](https://img.shields.io/badge/react-18+-61dafb.svg)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/typescript-5.9-3178c6.svg)](https://www.typescriptlang.org/)
 
-**Status: In Active Development - MVP Phase**
-
----
-
-## Table of Contents
-
-- [About](#about)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Quick Start](#quick-start)
-- [Project Structure](#project-structure)
-- [Documentation](#documentation)
-- [Development Status](#development-status)
-- [API Endpoints](#api-endpoints)
-- [Testing](#testing)
-- [Author](#author)
+**Status: MVP — Backend complete, web frontend in progress**
 
 ---
 
 ## About
 
-Flag Learning App is a cross-platform geography learning application designed to make learning world flags and country facts fun and habitual. Users receive one daily flag challenge, with three attempts to identify the country. The app tracks progress through streaks, statistics, and gamification elements.
-
-**Core Philosophy:**
-- **Daily micro-learning** - Less than 2 minutes per day
-- **Progressive difficulty** - Spaced repetition and intelligent selection
-- **Rich educational content** - Beyond simple flag recognition
-- **Cross-platform** - Web, iOS, React Native, and iOS Widget
-
----
-
-## Features
-
-### Currently Implemented (MVP - Phase 1)
-
-**Authentication & User Management**
-
-- Google OAuth 2.0 login
-- JWT token-based authentication (access + refresh)
-- Custom User model with email-based login
-
-**Daily Challenge System**
-
-- Tier-based country selection with cycle tracking
-- Intelligent algorithm prevents duplicate countries within cycles
-- Daily challenges synchronized across all users (midnight ET reset)
-- GET `/api/v1/daily/` - Today's challenge endpoint
-- GET `/api/v1/daily/history/` - Past challenges with pagination
-
-**Country Data Management**
-
-- 195 countries cached from REST Countries API
-- Comprehensive country data (population, capital, area, GDP, etc.)
-- Flag images (SVG + PNG) via CDN
-- Coat of arms images (where available)
-- Interactive and static map support
-
-**User Statistics**
-
-- Streak tracking (current and longest)
-- Total correct guesses
-- Incorrect countries list
-- Daily challenge history
-
-**API Infrastructure**
-
-- Django REST Framework
-- PostgreSQL database
-- 57 comprehensive tests (models, serializers, views, auth)
-- Versioned API endpoints (`/api/v1/`)
-
-### Planned Features
-
-**Phase 2: Enhanced Difficulty System** - Three difficulty tiers with day-of-week rotation
-
-**Phase 3: Quiz Mode** - Multiple question categories, flexible quiz configuration, speed rounds
-
-**Phase 4: Social & Gamification** - Achievement system, leaderboards, social sharing
-
-**Phase 5: Frontend Development** - React web app, React Native mobile app, iOS Widget
-
----
+One flag per day, three attempts to name the country. Streaks, stats, and a Swiss motorway signage-inspired interface. Globule serves web, mobile, and widget clients from a single API.
 
 ## Tech Stack
 
-### Backend
-- **Framework:** Django 5.0+ with Django REST Framework
-- **Language:** Python 3.11+
-- **Database:** PostgreSQL 14+
-- **Authentication:** JWT (djangorestframework-simplejwt) + Google OAuth
-- **Package Manager:** uv (10-100x faster than pip)
-
-### Data & External Services
-- **Country Data:** REST Countries API
-- **Flag Images:** flagcdn.com (CDN)
-- **Coat of Arms:** mainfacts.com
-
-### Frontend (Planned)
-- **Web:** React 18+ with Material-UI
-- **Mobile:** React Native with Expo + React Native Paper
-- **Widget:** Native iOS WidgetKit (Swift)
-- **State Management:** Zustand (shared web/mobile)
-
----
+| Layer | Stack |
+|-------|-------|
+| **Backend** | Django 5.0+ / DRF / PostgreSQL / JWT + Google OAuth / uv |
+| **Frontend** | Vite + React 18 + TypeScript / Radix UI + Custom CSS / Zustand / Axios |
+| **Design** | Swiss motorway signage aesthetic — Overpass font, dark green, white borders |
+| **Data** | 195 countries from REST Countries API, flags via flagcdn.com CDN |
 
 ## Quick Start
 
 ### Prerequisites
 
-- Python 3.11+
-- PostgreSQL 14+
-- [uv](https://github.com/astral-sh/uv) package manager
+- Python 3.11+, PostgreSQL 14+, [uv](https://github.com/astral-sh/uv), Node.js 18+, yarn
 
-### Installation
-
-**1. Clone the repository**
-```bash
-git clone https://github.com/adnan-shoukfeh/FlagApp.git
-cd Flag_Project
-```
-
-**2. Set up PostgreSQL database**
-```bash
-psql postgres
-```
-```sql
-CREATE USER your_user WITH PASSWORD 'your_password';
-ALTER USER your_user CREATEDB;
-CREATE DATABASE your_user_dev OWNER your_user;
-GRANT ALL PRIVILEGES ON DATABASE your_user_dev TO your_user;
-\q
-```
-
-**3. Configure environment variables**
+### Backend
 
 ```bash
 cd backend
-cp .env.example .env
-# Edit .env with your database credentials and Google OAuth client ID
+cp .env.example .env          # Configure DATABASE_URL, SECRET_KEY, GOOGLE_CLIENT_ID
+uv sync                       # Install dependencies
+make migrate                  # Apply migrations
+uv run python manage.py load_countries  # Load 195 countries
+make dev                      # Start server at :8000
 ```
 
-**4. Install dependencies and run migrations**
+### Frontend
 
 ```bash
-uv sync
-uv run python manage.py migrate
+cd frontend
+cp .env.example .env          # Set VITE_GOOGLE_CLIENT_ID
+yarn install
+yarn dev                      # Start at :5173 (proxies /api to :8000)
 ```
 
-**5. Load country data**
-```bash
-uv run python manage.py load_countries
-```
-
-**6. Run the development server**
-```bash
-uv run python manage.py runserver
-```
-
-The API will be available at `http://127.0.0.1:8000/`
-
-### Running Tests
+### Verify
 
 ```bash
-# All tests
-uv run python manage.py test
-
-# Specific app
-uv run python manage.py test users
-uv run python manage.py test flags
-
-# With coverage
-uv run coverage run --source='.' manage.py test
-uv run coverage report
+make test                     # 76 backend tests
+yarn run check                # TypeScript + ESLint
 ```
-
----
 
 ## Project Structure
 
 ```
 Flag_Project/
-    backend/                      # Django backend application
-        config/                   # Project settings and configuration
-        users/                    # User management app
-            models.py            # User, UserStats models
-            serializers/         # User serializers
-            views.py             # OAuth and auth views
-            tests/               # User tests (15 tests)
-        flags/                    # Flag challenge app
-            models.py            # Country, DailyChallenge, Question models
-            serializers/         # Country, challenge, question serializers
-            views.py             # API views and ViewSets
-            management/
-                commands/
-                    load_countries.py  # Load country data from API
-            tests/               # Flag tests (42 tests)
-        manage.py
-        pyproject.toml           # Dependencies (uv)
-        .env.example             # Environment variable template
-    docs/                         # Comprehensive documentation
-        Backend_Technical_Design_Main.md
-        Backend_Development_Workflow.md
-        Backend_PostgreSQL_Reference.md
-        North_Star_V1.md
-    CLAUDE.md                     # Development context for AI assistants
-    README.md                     # This file
+├── backend/
+│   ├── config/               # Django settings, urls
+│   ├── users/                # User, UserStats, Google OAuth
+│   ├── flags/                # Country, DailyChallenge, Question, UserAnswer
+│   └── Makefile              # make dev, make test, make migrate, etc.
+├── frontend/
+│   └── src/
+│       ├── styles/           # Design tokens + component CSS
+│       ├── components/ui/    # SignPanel, Badge, FlagDisplay, Button, etc.
+│       ├── screens/          # LoginScreen, DailyChallengeScreen, ResultsScreen
+│       ├── stores/           # Zustand (authStore, challengeStore)
+│       ├── api/              # Axios client with JWT interceptors
+│       └── types/            # TypeScript interfaces from backend serializers
+├── docs/
+│   ├── ROADMAP.md            # Vision, phases, key decisions
+│   └── design/road_sign.png  # Visual design reference
+├── CLAUDE.md                 # Development context
+└── README.md
 ```
-
----
-
-## Documentation
-
-Comprehensive documentation is available in the `docs/` directory:
-
-| Document | Description |
-|----------|-------------|
-| **[Backend Technical Design](docs/Backend_Technical_Design_Main.md)** | Complete architecture, database design, authentication system, serializers, testing strategy, and API design. **Start here** for understanding the system architecture. |
-| **[Development Workflow](docs/Backend_Development_Workflow.md)** | Daily commands, Git workflow, testing patterns, troubleshooting, and code quality checklist. Your go-to reference for day-to-day development. |
-| **[PostgreSQL Reference](docs/Backend_PostgreSQL_Reference.md)** | Database setup, backup/restore operations, monitoring, common queries, and troubleshooting. |
-| **[North Star Vision](docs/North_Star_V1.md)** | Complete project vision, feature roadmap, timeline, data models, and future phases. |
-
-### Quick Links
-
-- **Database Schema:** [Backend Technical Design - Section 3](docs/Backend_Technical_Design_Main.md#3-database-design)
-- **API Endpoints:** [Backend Technical Design - Section 10](docs/Backend_Technical_Design_Main.md#10-api-design)
-- **Authentication Flow:** [Backend Technical Design - Section 5](docs/Backend_Technical_Design_Main.md#5-authentication-system)
-- **Common Commands:** [Development Workflow - Section 3](docs/Backend_Development_Workflow.md#3-django-commands)
-- **Testing Guide:** [Development Workflow - Section 4](docs/Backend_Development_Workflow.md#4-testing-workflow)
-
----
-
-## Development Status
-
-### Current Phase: **MVP (Phase 1)** - Backend Complete
-
-**Completed:**
-- Custom User model with UserStats
-- OAuth authentication (Google Sign-In)
-- JWT token generation and refresh
-- All core data models
-- Tier-based country selection with cycle tracking
-- Serializer architecture (10+ serializers)
-- Daily challenge endpoints
-- Country data loading from REST Countries API
-- 57 tests passing
-
-**In Progress:**
-- Answer submission endpoint
-
-**Next Up:**
-- Frontend development (React web app)
-- React Native mobile app
-- iOS WidgetKit widget
-
----
 
 ## API Endpoints
 
-### Authentication
 ```
-POST   /api/v1/auth/google/              # OAuth login
-POST   /api/v1/auth/token/refresh/       # JWT token refresh
+POST /api/v1/auth/google/          OAuth login
+POST /api/v1/auth/token/refresh/   JWT refresh
+GET  /api/v1/daily/                Today's challenge
+POST /api/v1/daily/answer/         Submit answer
+GET  /api/v1/daily/history/        Past challenges (paginated)
+GET  /api/v1/countries/            List all countries
+GET  /api/v1/countries/{id}/       Country detail
 ```
-
-### Daily Challenge
-```
-GET    /api/v1/daily/                    # Today's challenge
-GET    /api/v1/daily/history/            # Past challenges (paginated)
-POST   /api/v1/daily/answer/             # Submit answer (Coming Soon)
-```
-
-### Countries
-```
-GET    /api/v1/countries/                # List all countries
-GET    /api/v1/countries/{id}/           # Country details
-```
-
-**Base URL (Development):** `http://127.0.0.1:8000/api/v1/`
-
----
-
-## Testing
-
-The project maintains a comprehensive test suite with 57 tests covering all major components.
-
-### Test Coverage Summary
-
-| Component | Tests | Status |
-|-----------|-------|--------|
-| JWT Token Generation | 3 | Passing |
-| Google OAuth Login | 6 | Passing |
-| Token Refresh | 3 | Passing |
-| Protected Endpoints | 3 | Passing |
-| User Model | 5 | Passing |
-| UserStats Model | 8 | Passing |
-| Country Model | 3 | Passing |
-| DailyChallenge Model | 2 | Passing |
-| Question Model | 2 | Passing |
-| Serializers | 4 | Passing |
-| DifficultyTierState | 4 | Passing |
-| Daily Challenge API | 7 | Passing |
-| Challenge History API | 2 | Passing |
-
----
 
 ## Author
 
-**Adnan Shoukfeh**
-
-- GitHub: [@adnan-shoukfeh](https://github.com/adnan-shoukfeh)
-- Project Repository: [Flag Learning App](https://github.com/adnan-shoukfeh/FlagApp)
-
----
-
-## Acknowledgments
-
-- **REST Countries API** - Country data source
-- **flagcdn.com** - Flag image CDN
-- **mainfacts.com** - Coat of arms images
-- **Django** & **Django REST Framework** - Backend framework
-- **Astral** - uv package manager
-
----
-
-**For detailed information, see the [comprehensive documentation](docs/).**
-
-
+**Adnan Shoukfeh** — [@adnan-shoukfeh](https://github.com/adnan-shoukfeh)

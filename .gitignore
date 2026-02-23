@@ -1,4 +1,17 @@
 # ===========================
+# Environment & Secrets
+# ===========================
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+credentials.json
+client_secret*.json
+token.json
+
+# ===========================
 # Python
 # ===========================
 __pycache__/
@@ -6,39 +19,18 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
 
-# ===========================
-# Virtual Environments
-# ===========================
+# Package build artifacts
+build/
+dist/
+*.egg-info/
+*.egg
+wheels/
+sdist/
+
+# Virtual environments
 .venv/
 venv/
-ENV/
-env/
-.env.local
-.env
-
-# ===========================
-# uv Package Manager
-# ===========================
-# uv.lock is typically committed (like package-lock.json)
-# but you can uncomment if you prefer not to
-# uv.lock
 
 # ===========================
 # Django
@@ -51,161 +43,76 @@ media/
 staticfiles/
 static_collected/
 
-# Django migrations - typically committed, but ignore if auto-generated during dev
-# Uncomment if you want to ignore migrations during development
+# Migrations are committed — they track schema changes
 # */migrations/*.py
-# !*/migrations/__init__.py
 
 # ===========================
-# Environment Variables
+# Node.js / Frontend
 # ===========================
-.env
-.env.*
-!.env.example
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# ===========================
-# IDE / Editors
-# ===========================
-# VS Code
-.vscode/
-*.code-workspace
+# Vite build output
+frontend/dist/
 
-# PyCharm / JetBrains
-.idea/
-*.iml
-*.ipr
-*.iws
-
-# Sublime Text
-*.sublime-project
-*.sublime-workspace
-
-# Vim
-*.swp
-*.swo
-*.swn
-*~
-
-# Emacs
-*~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-auto-save-list
-tramp
-
-# ===========================
-# Operating System
-# ===========================
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-._*
-.Spotlight-V100
-.Trashes
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-*.lnk
-
-# Linux
-*~
+# yarn.lock is committed (like uv.lock) — do not ignore
 
 # ===========================
 # Testing / Coverage
 # ===========================
 htmlcov/
-.tox/
-.nox/
 .coverage
 .coverage.*
 .cache
-nosetests.xml
 coverage.xml
 *.cover
 *.py,cover
-.hypothesis/
 .pytest_cache/
-pytest_cache/
-
-# ===========================
-# Jupyter Notebooks
-# ===========================
-.ipynb_checkpoints
-*.ipynb
+.tox/
+.nox/
+.hypothesis/
 
 # ===========================
 # Type Checkers
 # ===========================
 .mypy_cache/
 .dmypy.json
-dmypy.json
 .pytype/
 
 # ===========================
-# Documentation
+# IDE / Editors
 # ===========================
-docs/_build/
-site/
+.vscode/
+*.code-workspace
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
 
 # ===========================
-# Secrets / Credentials
+# OS
 # ===========================
-*.pem
-*.key
-credentials.json
-client_secret*.json
-token.json
-
-# ===========================
-# Backup Files
-# ===========================
-*.bak
-*.backup
-*.old
-
-# ===========================
-# Frontend (React/React Native)
-# ===========================
-# Node modules
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Build outputs
-frontend/build/
-frontend/dist/
-.next/
-out/
-
-# React Native
-*.jsbundle
-
-# Expo
-.expo/
-*.expo/
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+Desktop.ini
 
 # ===========================
 # Misc
 # ===========================
-# Local development notes
-TODO.md
-NOTES.md
-docs/NOTES.md
-notes.md
-docs/notes.md
+# Local scratch notes (not project docs)
 scratch/
 temp/
 tmp/
-
-# Celery
-celerybeat-schedule
-celerybeat.pid
-
-# Redis dump
-dump.rdb
+*.bak
+*.backup
+*.old
+TODO.md
+NOTES.md
