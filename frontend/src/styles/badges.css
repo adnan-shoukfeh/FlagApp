@@ -1,0 +1,44 @@
+/* Badge System — National Route (red) + European Route (green outline) */
+
+.badge-national {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-red);
+  color: var(--color-text-primary);
+  font-family: var(--font-primary);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  letter-spacing: 0.02em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: var(--shadow-badge);
+  min-width: 2rem;
+  text-align: center;
+  gap: var(--space-1);
+}
+
+.badge-euro {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-mid);
+  color: var(--color-text-primary);
+  font-family: var(--font-primary);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 5px;
+  border: 2px solid var(--color-border);
+  box-shadow: var(--shadow-badge);
+  min-width: 2rem;
+  text-align: center;
+  gap: var(--space-1);
+}
+
+.badge-national.revealed,
+.badge-euro.revealed {
+  animation: badge-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}

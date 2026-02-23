@@ -1,0 +1,57 @@
+/* Sign Panel — primary container */
+
+.sign-panel {
+  background: var(--color-surface);
+  border: 3px solid var(--color-border);
+  border-radius: 12px;
+  padding: var(--space-8);
+  box-shadow: var(--shadow-sign);
+  position: relative;
+  outline: 1px solid rgba(255, 255, 255, 0.08);
+  outline-offset: -8px;
+}
+
+.sign-panel.feedback-correct {
+  animation: correct-flash 0.5s ease-out;
+}
+
+.sign-panel.feedback-incorrect {
+  animation: incorrect-shake 0.4s ease-out;
+}
+
+/* Animations */
+
+@keyframes sign-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes correct-flash {
+  0%, 100% { background: var(--color-surface); }
+  50% { background: rgba(74, 222, 128, 0.2); }
+}
+
+@keyframes incorrect-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+@keyframes badge-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes streak-fire {
+  0%, 100% { transform: scale(1) rotate(-3deg); }
+  50% { transform: scale(1.15) rotate(3deg); }
+}

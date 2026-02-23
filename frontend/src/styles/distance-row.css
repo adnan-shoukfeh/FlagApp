@@ -1,0 +1,26 @@
+/* Distance Row — motorway destination/distance pattern */
+
+.distance-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  font-family: var(--font-primary);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.distance-row-label {
+  white-space: nowrap;
+}
+
+.distance-row-connector {
+  flex: 1;
+  border-bottom: 2px dotted rgba(255, 255, 255, 0.2);
+  margin-bottom: 0.2em;
+}
+
+.distance-row-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

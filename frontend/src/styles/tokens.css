@@ -1,0 +1,63 @@
+/* ==============================================
+   Globule Design Tokens
+   Swiss motorway signage design system
+   ============================================== */
+
+:root {
+  /* Core palette — Swiss motorway */
+  --color-ground: #00391C;
+  --color-surface: #005229;
+  --color-surface-mid: #006F37;
+  --color-surface-high: #007D3E;
+  --color-border: #FFFFFF;
+  --color-border-dim: rgba(255, 255, 255, 0.25);
+
+  /* Text */
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: rgba(255, 255, 255, 0.65);
+  --color-text-disabled: rgba(255, 255, 255, 0.35);
+
+  /* Accent — Swiss red route badge */
+  --color-red: #C8102E;
+  --color-red-dark: #A00D24;
+  --color-red-glow: rgba(200, 16, 46, 0.35);
+
+  /* Semantic states */
+  --color-correct: #4ADE80;
+  --color-incorrect: #C8102E;
+  --color-warning: #FBBF24;
+  --color-neutral: rgba(255, 255, 255, 0.12);
+
+  /* European route badge (outline style) */
+  --color-euro-bg: transparent;
+  --color-euro-border: #FFFFFF;
+
+  /* Shadows */
+  --shadow-sign: 0 4px 24px rgba(0, 0, 0, 0.5), 0 1px 4px rgba(0, 0, 0, 0.3);
+  --shadow-badge: 0 2px 8px rgba(0, 0, 0, 0.4);
+
+  /* Typography */
+  --font-primary: 'Overpass', 'Highway Gothic', sans-serif;
+  --font-mono: 'Overpass Mono', monospace;
+
+  /* Type scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-hero: clamp(3rem, 8vw, 6rem);
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+}
