@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
+import { BookOpen } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import { SignPanel } from '../components/ui/SignPanel';
 import { Wordmark } from '../components/ui/Wordmark';
@@ -84,6 +85,11 @@ export function LoginScreen() {
           </p>
         )}
       </SignPanel>
+
+      <Link to="/encyclopedia" className="encyclopedia-nav-link">
+        <BookOpen size={16} />
+        Explore the Encyclopedia
+      </Link>
     </div>
   );
 }

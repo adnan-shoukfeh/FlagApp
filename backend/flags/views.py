@@ -3,15 +3,19 @@ API views for flags app.
 """
 
 from rest_framework import generics, permissions, status, viewsets
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.contrib.postgres.search import TrigramSimilarity
+from django.db.models import Q
+from django.db.models.functions import Length
 from django.utils import timezone
 
 from flags.models import Country, DailyChallenge, UserAnswer
 from flags.serializers import (
     CountryDetailSerializer,
     CountryListSerializer,
+    CountrySearchSerializer,
     DailyChallengeHistoryItemSerializer,
     DailyChallengeResponseSerializer,
     QuestionAnswerSerializer,
@@ -54,6 +58,7 @@ class CountryViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Country.objects.all()
     permission_classes = [permissions.AllowAny]  # Public for MVP
+    lookup_field = "code"
 
     def get_serializer_class(self):
         """
@@ -64,7 +69,38 @@ class CountryViewSet(viewsets.ReadOnlyModelViewSet):
         """
         if self.action == "list":
             return CountryListSerializer
+        if self.action == "search":
+            return CountryListSerializer
         return CountryDetailSerializer
+
+    @action(detail=False, methods=["get"])
+    def search(self, request):
+        """
+        Search countries with fuzzy matching (typo tolerance).
+
+        GET /api/v1/countries/search/?q=frnce&limit=10
+
+        Uses PostgreSQL trigram similarity for typo-tolerant matching,
+        combined with prefix matching for autocomplete behavior.
+        """
+        serializer = CountrySearchSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+
+        query = serializer.validated_data.get("query", "").strip()
+        limit = serializer.validated_data.get("limit", 20)
+
+        if not query:
+            return Response([])
+
+        results = (
+            Country.objects
+            .annotate(similarity=TrigramSimilarity("name", query))
+            .filter(Q(similarity__gt=0.1) | Q(name__icontains=query))
+            .order_by("-similarity")
+            [:limit]
+        )
+
+        return Response(CountryListSerializer(results, many=True).data)
 
 
 class DailyChallengeView(APIView):

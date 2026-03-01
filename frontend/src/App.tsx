@@ -6,6 +6,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginScreen } from './screens/LoginScreen';
 import { DailyChallengeScreen } from './screens/DailyChallengeScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
+import { EncyclopediaScreen } from './screens/EncyclopediaScreen';
 
 export default function App() {
   const hydrate = useAuthStore((s) => s.hydrate);
@@ -19,6 +20,7 @@ export default function App() {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/login" element={<LoginScreen />} />
+          <Route path="/encyclopedia" element={<EncyclopediaScreen />} />
           <Route
             path="/daily"
             element={
