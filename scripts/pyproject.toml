@@ -1,0 +1,10 @@
+[project]
+name = "scripts"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pillow>=10.4.0",
+    "vibrant-python>=0.1.6",
+]

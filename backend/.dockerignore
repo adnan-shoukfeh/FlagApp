@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+!.env.example
+*.egg-info/
+.git/
+.gitignore
+README.md
+staticfiles/
+static_collected/
+*.log
+.DS_Store

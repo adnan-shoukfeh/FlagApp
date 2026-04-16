@@ -93,19 +93,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DATABASE_URL").split("/")[-1],  # flaglearning_dev
-        "USER": os.getenv("DATABASE_URL")
-        .split("@")[0]
-        .split(":")[-2]
-        .split("//")[-1],  # flaglearning_user
-        "PASSWORD": os.getenv("DATABASE_URL")
-        .split("@")[0]
-        .split(":")[-1],  # your password
-        "HOST": os.getenv("DATABASE_URL").split("@")[1].split(":")[0],  # localhost
-        "PORT": os.getenv("DATABASE_URL")
-        .split("@")[1]
-        .split(":")[1]
-        .split("/")[0],  # 5432
+        "NAME": os.getenv("DATABASE_NAME"),
+        "USER": os.getenv("DATABASE_USER"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
+        # DATABASE_HOST is overridden to "db" by docker-compose for container environments
+        "HOST": os.getenv("DATABASE_HOST", "localhost"),
+        "PORT": os.getenv("DATABASE_PORT", "5432"),
     }
 }
 

@@ -105,6 +105,16 @@ Thumbs.db
 Desktop.ini
 
 # ===========================
+# Docker
+# ===========================
+# Named volumes and build cache are managed by Docker, not git
+
+# ===========================
+# Superpowers
+# ===========================
+.superpowers/
+
+# ===========================
 # Misc
 # ===========================
 # Local scratch notes (not project docs)

@@ -24,37 +24,70 @@ One flag per day, three attempts to name the country. Streaks, stats, and a Swis
 | **Design** | Swiss motorway signage aesthetic — Overpass font, dark green, white borders |
 | **Data** | 195 countries from REST Countries API, flags via flagcdn.com CDN |
 
-## Quick Start
+## Development
 
 ### Prerequisites
 
-- Python 3.11+, PostgreSQL 14+, [uv](https://github.com/astral-sh/uv), Node.js 18+, yarn
+[Docker Desktop](https://www.docker.com/products/docker-desktop/), and nothing else — all services run in containers.
 
-### Backend
+### First-time setup
 
 ```bash
-cd backend
-cp .env.example .env          # Configure DATABASE_URL, SECRET_KEY, GOOGLE_CLIENT_ID
-uv sync                       # Install dependencies
-make migrate                  # Apply migrations
-uv run python manage.py load_countries  # Load 195 countries
-make dev                      # Start server at :8000
+# 1. Stop local PostgreSQL if running (avoids port 5432 conflict)
+brew services stop postgresql@16
+
+# 2. Configure environment files
+cp backend/.env.example backend/.env    # fill in SECRET_KEY, GOOGLE_CLIENT_ID/SECRET
+cp frontend/.env.example frontend/.env  # fill in VITE_GOOGLE_CLIENT_ID
+
+# 3. Build images and start all services
+make dev-build
+
+# 4. Load country data (one-time)
+make load-countries
 ```
 
-### Frontend
+Backend is at `http://localhost:8000`, frontend at `http://localhost:5173`.  
+Migrations run automatically on every `make dev` startup.
+
+### Daily workflow
 
 ```bash
-cd frontend
-cp .env.example .env          # Set VITE_GOOGLE_CLIENT_ID
-yarn install
-yarn dev                      # Start at :5173 (proxies /api to :8000)
+make dev          # start all services (db + backend + frontend)
+make down         # stop everything
+make logs         # tail all container logs
+make test         # run 76 backend tests
+make check        # TypeScript + ESLint
 ```
 
-### Verify
+### Database & Django
 
 ```bash
-make test                     # 76 backend tests
-yarn run check                # TypeScript + ESLint
+make migrate          # apply migrations
+make makemigrations   # create new migrations
+make shell            # Django shell
+make dbshell          # psql inside the db container
+```
+
+### Production builds
+
+```bash
+# Build standalone images ready for GCP (or any container host)
+make prod-build \
+  VITE_API_BASE_URL=https://api.yourdomain.com \
+  VITE_GOOGLE_CLIENT_ID=your-client-id
+```
+
+### Running without Docker
+
+If you need to run services directly on the host:
+
+```bash
+# Backend
+cd backend && uv sync && make dev
+
+# Frontend (in a separate terminal)
+cd frontend && yarn install && yarn dev
 ```
 
 ## Project Structure
@@ -74,9 +107,10 @@ Flag_Project/
 │       ├── stores/           # Zustand (authStore, challengeStore)
 │       ├── api/              # Axios client with JWT interceptors
 │       └── types/            # TypeScript interfaces from backend serializers
+├── design-system/            # Design tokens, inspiration, extraction tools
 ├── docs/
-│   ├── ROADMAP.md            # Vision, phases, key decisions
-│   └── design/road_sign.png  # Visual design reference
+│   └── Design_System_Pipeline.md  # Design token pipeline docs
+├── scripts/                  # Utility scripts
 ├── CLAUDE.md                 # Development context
 └── README.md
 ```
