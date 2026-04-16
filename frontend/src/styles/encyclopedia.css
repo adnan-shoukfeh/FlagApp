@@ -1,0 +1,239 @@
+/* Encyclopedia — Index + Detail shared styles */
+
+/* === Search === */
+
+.encyclopedia-search {
+  position: relative;
+}
+
+.encyclopedia-search-input {
+  width: 100%;
+  background: var(--color-surface);
+  border: 3px solid var(--color-border);
+  border-radius: 12px;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-primary);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.encyclopedia-search-input::placeholder {
+  color: var(--color-text-disabled);
+  font-weight: 400;
+}
+
+.encyclopedia-search-input:focus {
+  border-color: var(--color-surface-high);
+}
+
+/* === Country List === */
+
+.country-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.country-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--color-border-dim);
+  cursor: pointer;
+  transition: background 0.12s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.country-row:last-child {
+  border-bottom: none;
+}
+
+.country-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.country-row-flag {
+  width: 36px;
+  height: 24px;
+  padding: 2px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.country-row-flag img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 2px;
+}
+
+.country-row-name {
+  font-weight: 700;
+  font-size: var(--text-base);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.country-row-meta {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.country-row-chevron {
+  color: var(--color-text-disabled);
+  font-size: var(--text-lg);
+  flex-shrink: 0;
+}
+
+/* === Country Detail === */
+
+.country-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.country-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.country-back-link:hover {
+  color: var(--color-text-primary);
+}
+
+.country-flag-display {
+  width: 100%;
+  height: 180px;
+  background: var(--color-surface);
+  border: 3px solid var(--color-border);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sign);
+  overflow: hidden;
+}
+
+.country-flag-display img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
+.country-header {
+  text-align: center;
+}
+
+.country-header-name {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.country-header-code {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: var(--space-1);
+}
+
+/* Panel sections inside detail */
+
+.country-panel-title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.country-panel-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* List panels (languages, religions) */
+
+.country-list-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.country-list-item {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-dim);
+  font-weight: 600;
+}
+
+.country-list-item:last-child {
+  border-bottom: none;
+}
+
+.country-list-bullet {
+  color: var(--color-text-secondary);
+  margin-right: var(--space-2);
+}
+
+/* Loading skeleton */
+
+.encyclopedia-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-8);
+}
+
+.skeleton-row {
+  height: 1.2rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-row:nth-child(2) { width: 75%; }
+.skeleton-row:nth-child(3) { width: 60%; }
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* Empty state */
+
+.encyclopedia-empty {
+  text-align: center;
+  padding: var(--space-12) var(--space-4);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}

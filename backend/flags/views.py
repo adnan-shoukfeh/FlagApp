@@ -54,6 +54,8 @@ class CountryViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Country.objects.all()
     permission_classes = [permissions.AllowAny]  # Public for MVP
+    lookup_field = "code"
+    pagination_class = None
 
     def get_serializer_class(self):
         """

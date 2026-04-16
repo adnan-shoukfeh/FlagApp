@@ -110,6 +110,11 @@ Desktop.ini
 # Named volumes and build cache are managed by Docker, not git
 
 # ===========================
+# Design System (local extraction artifacts)
+# ===========================
+design-system/
+
+# ===========================
 # Superpowers
 # ===========================
 .superpowers/

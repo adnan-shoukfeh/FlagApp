@@ -1,0 +1,50 @@
+/* Top Navigation Bar */
+
+.nav-bar {
+  display: flex;
+  align-items: stretch;
+  background: var(--color-surface);
+  border-bottom: 3px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-primary);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -3px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  text-decoration: none;
+}
+
+.nav-tab:hover {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-tab.active {
+  color: var(--color-text-primary);
+  background: var(--color-surface-mid);
+  border-bottom-color: var(--color-border);
+}
+
+.nav-tab-icon {
+  display: flex;
+  align-items: center;
+  font-size: 1.1em;
+}

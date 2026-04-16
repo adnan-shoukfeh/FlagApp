@@ -6,6 +6,8 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginScreen } from './screens/LoginScreen';
 import { DailyChallengeScreen } from './screens/DailyChallengeScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
+import { EncyclopediaScreen } from './screens/EncyclopediaScreen';
+import { CountryDetailScreen } from './screens/CountryDetailScreen';
 
 export default function App() {
   const hydrate = useAuthStore((s) => s.hydrate);
@@ -32,6 +34,22 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ResultsScreen />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/encyclopedia"
+            element={
+              <ProtectedRoute>
+                <EncyclopediaScreen />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/encyclopedia/:code"
+            element={
+              <ProtectedRoute>
+                <CountryDetailScreen />
               </ProtectedRoute>
             }
           />
